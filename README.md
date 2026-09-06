@@ -7,7 +7,7 @@ Personal dotfiles managed with [chezmoi](https://www.chezmoi.io/).
 | File | Purpose |
 |------|---------|
 | `dot_zshrc` | Zsh config (Oh My Zsh, aliases, PATH, plugins) |
-| `dot_gitconfig` | Git identity and defaults |
+| `dot_gitconfig` | Git session defaults (no personal identity — set per machine) |
 | `run_once_before_setup-zsh-10.sh` | Install Oh My Zsh + plugins (autosuggestions, syntax-highlighting) |
 | `run_once_before_packages-10.sh` | Core CLI packages via the right package manager (apt on Linux, Homebrew on macOS) |
 | `run_once_before_setup-zoxide-20.sh` | Zoxide installer (curl; APT's version is stale on Ubuntu, brew has it too) |
@@ -22,6 +22,7 @@ The setup scripts detect the running platform at runtime — **no hardcoded OS/v
 ## Requirements
 
 - `curl` and `git` available to bootstrap
+- The repo is **public**, so no GitHub account/auth is needed just to clone
 - On Linux: `sudo` access to install packages
 - On macOS: you'll be prompted to accept Apple's **Xcode Command Line Tools** installer dialog (Homebrew needs it)
 
@@ -45,22 +46,39 @@ export PATH="$HOME/.local/bin:$PATH"
 
 ### 2. Initialize the dotfiles
 
+Because the repo is **public**, cloning needs no credentials:
+
 ```bash
 chezmoi init --apply ItsZcx/dotfiles
 ```
 
-> Your public repo is `github.com/ItsZcx/dotfiles`. The shortcut above uses
-> chezmoi's built-in GitHub support. If you use SSH, run this instead:
+> Using the HTTPS shorthand (`ItsZcx/dotfiles`) means anyone can clone without
+> auth. If you'd rather clone over SSH instead, run:
 >
 > ```bash
 > chezmoi init --apply git@github.com:ItsZcx/dotfiles.git
 > ```
 
-This clones the repo, installs Oh My Zsh + plugins, core packages
-(via Homebrew/Xcode CLT on macOS, apt on Linux), Zoxide, and writes
-`~/.zshrc` and `~/.gitconfig`.
+This applies the dotfiles and runs the install scripts: Oh My Zsh + plugins,
+core packages (via Homebrew/Xcode CLT on macOS, apt on Linux), Zoxide, and
+writes `~/.zshrc` and `~/.gitconfig`.
 
-### 3. Make zsh your default shell (optional)
+### 3. Set your Git identity once (required for your first commit)
+
+Git identity is **not** stored in this repo (so it's safe to make public and
+so you can use the right identity per machine, e.g. work vs personal). Set it
+once — it persists in `~/.gitconfig` on that machine:
+
+```bash
+git config --global user.name  "Your Name"
+git config --global user.email "you@example.com"
+```
+
+> You only need this the first time you commit anywhere on a new machine. Clone,
+> pull and apply all work without it. For a job workstation, use the job
+> identity here instead of a personal one.
+
+### 4. Make zsh your default shell (optional)
 
 After the first apply, switch to zsh:
 
@@ -82,7 +100,8 @@ zsh
 ## Day-to-day commands
 
 ```bash
-# Pull any remote changes and apply them
+# Pull any remote changes and apply them (works via HTTPS on a public repo;
+# if you cloned over SSH this uses your key)
 chezmoi update
 
 # Re-apply the dotfiles after editing (also triggers the "before" scripts)
@@ -160,6 +179,16 @@ Linux additionally installs `build-essential` (see above). The commented
 
 ## Notes
 
-- **Git identity** lives in `dot_gitconfig`. Change it in the source repo and push if you want a different name/email.
-- **Private files** can be stored with `.chezmoiignore` / `chezmoi add --encrypt` if you ever need secrets.
-- Verify what would change before applying with `chezmoi diff` and `chezmoi apply --dry-run`.
+- **Git identity is intentionally not committed** (kept out of `dot_gitconfig` so
+the repo is safe to make public and so each machine picks the right name/email).
+Set it once per machine — see step 3 of the setup.
+- **Pushing changes** requires write access to the (public → read-only for
+strangers) repo. Set up an SSH key on GitHub once if you want to commit/push
+from that machine:
+  `ssh-keygen -t ed25519` then add `~/.ssh/id_ed25519.pub` at
+  https://github.com/settings/ssh/new, then `ssh -T git@github.com` to verify.
+  (Cloning needs none of this since the repo is public.)
+- **Sensitive values** must never be committed in this now-public repo — use
+`.chezmoignore` / `chezmoi add --encrypt` for anything secret.
+- Verify what would change before applying with `chezmoi diff` and
+`chezmoi apply --dry-run`.

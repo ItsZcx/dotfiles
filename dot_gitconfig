@@ -1,4 +1,13 @@
+# Git identity is intentionally NOT stored in this public repo.
+#
+# Set your name/email once per machine (choose the identity that makes sense
+# for that machine, e.g. work vs personal).
+#
+#   git config --global user.name  "Your Name"
+#   git config --global user.email "you@example.com"
+
 [init]
 	defaultBranch = main
+
 [pull]
 	rebase = false
