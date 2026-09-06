@@ -1,0 +1,7 @@
+# Editor / IDE — never deployed to target machines
+.vscode/
+.idea/
+
+# OS junk
+.DS_Store
+Thumbs.db

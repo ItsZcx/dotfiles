@@ -1,0 +1,11 @@
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# chezmoi / misc
+*.tmp
