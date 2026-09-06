@@ -5,3 +5,7 @@
 # OS junk
 .DS_Store
 Thumbs.db
+
+# Hosted installer — never deployed to target machines
+bootstrap.sh
+
