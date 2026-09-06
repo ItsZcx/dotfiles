@@ -11,6 +11,7 @@ Personal dotfiles managed with [chezmoi](https://www.chezmoi.io/).
 | `run_once_before_setup-zsh-10.sh` | Install Oh My Zsh + plugins (autosuggestions, syntax-highlighting) |
 | `run_once_before_packages-10.sh` | Core CLI packages via the right package manager (apt on Linux, Homebrew on macOS) |
 | `run_once_before_setup-zoxide-20.sh` | Zoxide installer (curl; APT's version is stale on Ubuntu, brew has it too) |
+| `bootstrap.sh` | Hosted one-line installer (see Setup) |
 
 ## Supported platforms
 
@@ -29,23 +30,32 @@ The setup scripts detect the running platform at runtime, and pick the package m
 
 ## Setup on a new machine
 
-Run these commands in order. Copy and paste each block.
+### Quickstart (one line)
 
-### 1. Install chezmoi
+Run this — it installs chezmoi, clones + applies the dotfiles, and offers to
+switch your login shell to zsh. Everything is idempotent, so re-running is safe
+(needed after macOS finishes the Xcode CLT install):
+
+```bash
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ItsZcx/dotfiles/main/bootstrap.sh)"
+```
+
+On macOS, if prompted, accept the **Xcode Command Line Tools** installer, wait
+for it to finish, then run the command again.
+
+
+### Manual / step-by-step (optional)
+
+The equivalent steps, if you prefer to do it yourself:
+
+**1. Install chezmoi** (installs to `~/.local/bin`):
 
 ```bash
 sh -c "$(curl -fsLS get.chezmoi.io)"
-```
-
-This installs chezmoi to `~/.local/bin`. Make sure it's on your `PATH`:
-
-```bash
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-### 2. Initialize the dotfiles
-
-Cloning needs no credentials:
+**2. Initialize the dotfiles** (no credentials needed — public repo):
 
 ```bash
 chezmoi init --apply ItsZcx/dotfiles
@@ -55,30 +65,22 @@ This applies the dotfiles and runs the install scripts: Oh My Zsh + plugins,
 core packages (via Homebrew/Xcode CLT on macOS, apt on Linux), Zoxide, and
 writes `~/.zshrc` and `~/.gitconfig`.
 
-### 3. Set your Git identity once (required for your first commit)
+**3. Make zsh your default shell (optional)** — macOS already defaults to zsh:
 
+```bash
+chsh -s "$(which zsh)"   # then log out and back in
+```
+
+### Set Git identity (manual, once per machine)
+
+The default shell commands do **not** set your git identity. Do this yourself
+after setup, so you can use the right name/email for each machine (e.g. work vs
+personal). It is required before your first `git commit`:
 
 ```bash
 git config --global user.name  "Your Name"
 git config --global user.email "you@example.com"
 ```
-
-### 4. Make zsh your default shell (optional)
-
-After the first apply, switch to zsh:
-
-```bash
-chsh -s "$(which zsh)"
-```
-
-Log out and back in, or just start zsh:
-
-```bash
-zsh
-```
-
-> On macOS, `zsh` is normally already the default login shell, so this step
-> may be unnecessary.
 
 ---
 

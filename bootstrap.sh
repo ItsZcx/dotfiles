@@ -8,8 +8,7 @@
 #
 # That is deliberately pattern-matched to the official installers (chezmoi,
 # Homebrew, Oh My Zsh). It is safe to re-run: every step is idempotent. Run it
-# again after macOS asks you to finish the Xcode CLT install, or if you skip
-# the git-identity prompt.
+# again after macOS asks you to finish the Xcode CLT install.
 #
 # What it does (in order):
 #   1. Detects the platform.
@@ -18,9 +17,12 @@
 #      - On Linux: this triggers the apt + Oh My Zsh + Zoxide installers.
 #      - On macOS: triggers the Xcode CLT dialog (you must click Install) and
 #        then Homebrew + Oh My Zsh + Zoxide.
-#   4. Prompts once (only if unset) for git user.name / user.email, which are
-#      NOT stored in the repo so you can use the right identity per machine.
-#   5. Prints a closing note about making zsh your login shell.
+#   4. Offers to make zsh your login shell (Linux only).
+#
+# NOTE: per-machine git identity is intentionally NOT configured here. Set it
+# manually once after a successful setup:
+#   git config --global user.name  "Your Name"
+#   git config --global user.email "you@example.com"
 #
 # NOTE: running remote code from the network. Review this file in the repo
 # before trusting it on a machine.
@@ -78,30 +80,7 @@ if [ "${PLATFORM}" = "macos" ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# 4. Git identity. Not stored in the repo (by design). Ask once per machine,
-#    only if neither global name nor email is already configured.
-# ---------------------------------------------------------------------------
-CUR_NAME="$(git config --global user.name 2>/dev/null || true)"
-CUR_EMAIL="$(git config --global user.email 2>/dev/null || true)"
-if [ -n "${CUR_NAME:-}" ] && [ -n "${CUR_EMAIL:-}" ]; then
-  say "Git identity already configured: ${CUR_NAME} <${CUR_EMAIL}>"
-else
-  say "No global git identity set. It is required for your first commit."
-  printf '  user.name : '
-  read -r NEW_NAME
-  printf '  user.email: '
-  read -r NEW_EMAIL
-  if [ -n "${NEW_NAME:-}" ] && [ -n "${NEW_EMAIL:-}" ]; then
-    git config --global user.name  "${NEW_NAME}"
-    git config --global user.email "${NEW_EMAIL}"
-    say "Git identity saved: ${NEW_NAME} <${NEW_EMAIL}>"
-  else
-    say "Skipped — run 'git config --global user.name/email' before your first commit."
-  fi
-fi
-
-# ---------------------------------------------------------------------------
-# 5. Closing notes.
+# 4. Closing notes.
 # ---------------------------------------------------------------------------
 say "Done. Open a new shell (or run 'zsh') to load the new config."
 
