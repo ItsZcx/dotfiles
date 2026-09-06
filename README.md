@@ -4,14 +4,14 @@ Personal dotfiles managed with [chezmoi](https://www.chezmoi.io/).
 
 ## What's included
 
-| File | Purpose |
-|------|---------|
-| `dot_zshrc` | Zsh config (Oh My Zsh, aliases, PATH, plugins) |
-| `dot_gitconfig` | Git session defaults (no personal identity, set per machine) |
-| `run_once_before_setup-zsh-10.sh` | Install Oh My Zsh + plugins (autosuggestions, syntax-highlighting) |
-| `run_once_before_packages-10.sh` | Core CLI packages via the right package manager (apt on Linux, Homebrew on macOS) |
-| `run_once_before_setup-zoxide-20.sh` | Zoxide installer (curl; APT's version is stale on Ubuntu, brew has it too) |
-| `bootstrap.sh` | Hosted one-line installer (see Setup) |
+| File                                 | Purpose                                                                           |
+| ------------------------------------ | --------------------------------------------------------------------------------- |
+| `dot_zshrc`                          | Zsh config (Oh My Zsh, aliases, PATH, plugins)                                    |
+| `dot_gitconfig`                      | Git session defaults (no personal identity, set per machine)                      |
+| `run_once_before_setup-zsh-10.sh`    | Install Oh My Zsh + plugins (autosuggestions, syntax-highlighting)                |
+| `run_once_before_packages-10.sh`     | Core CLI packages via the right package manager (apt on Linux, Homebrew on macOS) |
+| `run_once_before_setup-zoxide-20.sh` | Zoxide installer (curl; APT's version is stale on Ubuntu, brew has it too)        |
+| `bootstrap.sh`                       | Hosted one-line installer (see Setup)                                             |
 
 ## Supported platforms
 
@@ -110,8 +110,8 @@ chezmoi diff
 
 chezmoi runs scripts automatically based on their filename prefix:
 
-| Prefix | When it runs |
-|--------|--------------|
+| Prefix       | When it runs                               |
+| ------------ | ------------------------------------------ |
 | `run_once_*` | Only once, ever (until the script changes) |
 
 - `run_once_before_setup-zsh-10.sh`, installs Oh My Zsh and its plugins once.
@@ -127,7 +127,18 @@ The numeric suffix (e.g. `-10`, `-20`) controls ordering.
 
 ## Notes
 
-**Set up an SSH key on GitHub commands**:
- - `ssh-keygen -t ed25519` 
- - `~/.ssh/id_ed25519.pub` at https://github.com/settings/ssh/new,
- - `ssh -T git@github.com` to verify.
+### Set up an SSH key for GitHub
+
+1. Generate an Ed25519 SSH key:
+
+	```bash
+	ssh-keygen -t ed25519
+	```
+
+2. Add the public key from `~/.ssh/id_ed25519.pub` to [GitHub's SSH key settings](https://github.com/settings/ssh/new).
+
+3. Verify the connection:
+
+	```bash
+	ssh -T git@github.com
+	```
