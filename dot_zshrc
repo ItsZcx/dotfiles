@@ -101,32 +101,80 @@ source $ZSH/oh-my-zsh.sh
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 ###########
-## Alias ##
+## System / Package-manager handling ##
 ###########
 
+# Coarse detection of the running family. Not a brittle version string:
+# we key package-manager decisions off a single variable set here.
+case "$(uname -s)" in
+  Darwin) sys_family="macos" ;;
+  Linux)  sys_family="linux" ;;
+  *)      sys_family="unknown" ;;
+esac
 
-# APT
-alias update='sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y'
-alias aptclean='sudo apt clean && sudo apt autoclean'
+# 'update' refreshes system packages using whichever manager is present.
+# Priority: Homebrew (brew) > apt, decided by what's actually installed.
+update() {
+  if command -v brew >/dev/null 2>&1; then
+    brew update && brew upgrade
+  elif command -v apt-get >/dev/null 2>&1; then
+    sudo apt-get update && sudo apt-get upgrade -y && sudo apt-get autoremove -y
+  fi
+}
 
-# Git
+# APT-specific hygiene only where apt is in use.
+if command -v apt-get >/dev/null 2>&1; then
+  alias aptclean='sudo apt-get clean && sudo apt-get autoclean'
+fi
+
+###########
+## Git aliases ##
+###########
+
 alias gitlines='cloc $(git ls-files)'
 alias gitlogs="git log --graph --abbrev-commit --decorate --date=short --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%ad%C(reset) %C(bold green)(%ar)%C(reset)%C(auto)%d%C(reset)%n'' %C(white)%s%C(reset) %C(dim white)- %an%C(reset)'"
 alias gitpruneb="git fetch -p && git branch -vv | awk '/: gone]/{print $1}' | xargs git branch -D"
 
-# Others
+###########
+## Other aliases ##
+###########
+
 alias la='ls -a'
 alias python='python3'
-alias open='xdg-open .'
-alias prm='sudo find $PWD -maxdepth 20 -type d -name __pycache__  -exec rm -r {} +'
 alias c='clear'
+
+# Open the file manager / default handler for a path.
+# macOS ships a native 'open', Linux commonly uses xdg-open.
+if [ "${sys_family}" = "macos" ]; then
+  # Native 'open' is present on macOS and needs no alias. Bear in mind:
+  #   open .         -> reveal current dir in Finder
+  #   open somefile  -> open with the default app for that file
+  :
+else
+  if command -v xdg-open >/dev/null 2>&1; then
+    alias open='xdg-open .'
+  fi
+fi
+
+# Purge __pycache__ directories below the current folder.
+alias prm='sudo find ${PWD} -maxdepth 20 -type d -name __pycache__ -exec rm -r {} +'
 
 
 ##################
 ## Other Config ##
 ##################
 
-export PATH="$HOME/.local/bin:/opt/nvim-linux64/bin:/usr/local/go/bin:$PATH"
+# Prepend tool directories to the PATH.
+#
+# We avoid hardcoding Linux-only absolute paths. Instead we build a PATH from
+# whatever is actually available:
+#   - Homebrew's *dynamic* prefix (macOS, and Linux via brew/linuxbrew)
+#   - ~/.local/bin (pip users, chezmoi installs)
+if command -v brew >/dev/null 2>&1; then
+  export PATH="$(brew --prefix)/bin:$(brew --prefix)/opt/nvim/bin:$HOME/.local/bin:${PATH}"
+else
+  export PATH="$HOME/.local/bin:/usr/local/bin:${PATH}"
+fi
 
 # Zoxide (Only load if installed)
 if command -v zoxide &> /dev/null; then
