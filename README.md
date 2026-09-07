@@ -13,7 +13,7 @@ Personal dotfiles managed with [chezmoi](https://www.chezmoi.io/).
 | `run_once_before_setup-zoxide-20.sh` | Zoxide installer (curl; APT's version is stale on Ubuntu, brew has it too)        |
 | `bootstrap.sh`                       | Hosted one-line installer (see Setup)                                             |
 | `install.sh`                         | **Optional** B1 checkbox menu (see below)                                         |
-| `optional/pi/`                       | Optional `pi` config + curated skills (deployed when selected)                 |
+| `optional/pi/`                       | Optional `pi` config, skills, guardrail, templates (when selected)             |
 
 ## Supported platforms
 
@@ -128,6 +128,21 @@ checked items with **Enter**, quit with **q**.
 
   Skills are idempotent to deploy and never overwrite an existing local skill
   of the same name.
+
+- **`pi-guard`** — installs `optional/pi/extensions/git-guard.ts` to
+  `~/.pi/agent/extensions/`.
+
+  This is a **global guardrail**: pi will not run `git commit` or `git push`
+  without your explicit in-terminal approval. It is fail-closed (if approval
+  can't be asked, the command is blocked). Restart pi or run `/reload` after
+  installing.
+
+- **`pi-prompts`** — installs `optional/pi/prompts/*.md` to
+  `~/.pi/agent/prompts/`, giving you reusable `/commands`.
+
+  - **`/commit`** — commits staged changes following the Conventional Commits
+    spec (type/scope/subject/body rules), shows you the exact command first,
+    and never pushes (push stays manual).
 
 Adding future optional things (skills, editors, tools) = one entry in
 `install.sh`'s feature manifest plus an `optional/<name>/` folder.
