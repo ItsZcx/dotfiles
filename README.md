@@ -126,13 +126,12 @@ checked items with **Enter**, quit with **q**.
   | `domain-modeling` | mattpocock | Sharpen project domain model & terminology |
   | `codebase-design` | mattpocock | Deep-module architecture design |
   | `prototype` | mattpocock | Throwaway spikes to answer design questions |
-  | `unslop` | pstack | Strip AI tells / add human voice (auto-loaded by technical-writing) |
+  | `unslop` | pstack | Strip AI tells / add human voice (**auto-applies to all prose**) |
   | `technical-writing` | pstack | Layered doc standard (Diátaxis/Google/STE/Global English) |
-  | `bro` | pstack | Restate last message in plain human language |
 
-  > `unslop`, `technical-writing`, and `bro` ship with
-  > `disable-model-invocation: true` (their pstack design): they are hidden
-  > from automatic context and fired deliberately via `/skill:name`.
+  > `unslop` is **model-invocable** (auto-applies when pi writes any prose).
+  > `technical-writing` keeps `disable-model-invocation: true`: it stays
+  > out of automatic context and is fired deliberately via `/skill:technical-writing`.
 
   Skills are idempotent to deploy and never overwrite an existing local skill
   of the same name.
@@ -151,6 +150,7 @@ checked items with **Enter**, quit with **q**.
   - **`/commit`** — commits staged changes following the Conventional Commits
     spec (type/scope/subject/body rules), shows you the exact command first,
     and never pushes (push stays manual).
+  - **`/bro`** — restates pi's last message in plain human language, no jargon.
 
 Adding future optional things (skills, editors, tools) = one entry in
 `install.sh`'s feature manifest plus an `optional/<name>/` folder.
