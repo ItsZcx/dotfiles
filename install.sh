@@ -48,9 +48,9 @@ FEATURE_ORDER=(pi pi-skills pi-guard pi-prompts)
 # ---------------------------------------------------------------------------
 # Feature installer: pi
 # ---------------------------------------------------------------------------
-deploy_pi() {
-  local src="${OPTIONAL_DIR}/pi/agent-settings.json"
-  local dst="${HOME}/.pi/agent/settings.json"
+# Back up any existing file that differs, then copy src over dst.
+deploy_pi_file() {
+  local src="$1" dst="$2"
   if [ ! -f "${src}" ]; then
     echo "  !! missing ${src}; skipping" >&2
     return 1
@@ -62,6 +62,11 @@ deploy_pi() {
   fi
   cp "${src}" "${dst}"
   echo "  -> wrote ${dst}"
+}
+
+deploy_pi() {
+  deploy_pi_file "${OPTIONAL_DIR}/pi/agent-settings.json" "${HOME}/.pi/agent/settings.json"
+  deploy_pi_file "${OPTIONAL_DIR}/pi/keybindings.json" "${HOME}/.pi/agent/keybindings.json"
 
   cat <<'EOF'
 
