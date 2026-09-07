@@ -133,7 +133,83 @@ fi
 
 alias gitlines='cloc $(git ls-files)'
 alias gitlogs="git log --graph --abbrev-commit --decorate --date=short --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%ad%C(reset) %C(bold green)(%ar)%C(reset)%C(auto)%d%C(reset)%n'' %C(white)%s%C(reset) %C(dim white)- %an%C(reset)'"
-alias gitpruneb="git fetch -p && git branch -vv | awk '/: gone]/{print $1}' | xargs git branch -D"
+
+# Clean up local branches whose upstream no longer exists on the remote.
+#
+#   gitpruneb       dry run: only list what it would remove, delete nothing
+#   gitpruneb -y    delete, but confirm once before removing
+#   gitpruneb -f    delete straight away, no prompt (non-interactive/cron)
+#   gitpruneb -D    also force-delete branches with unpushed local commits
+#
+# A branch is "gone" when git reports ': gone]'/'[gone]' in its tracking
+# info, i.e. its remote counterpart was merged or closed on the host and then
+# pruned by 'fetch -p'. Bare 'gitpruneb' never deletes, so it is always safe
+# to run, and the checked-out branch is never a candidate. On delete, git
+# refuses to drop a branch carrying commits not merged upstream/HEAD unless
+# '-D' is passed (e.g. after a squash-merge).
+gitpruneb() {
+  local ask=-1 flag='-d'
+  while (( $# )); do
+    case "$1" in
+      -y) ask=1 ;;
+      -f) ask=0 ;;
+      -D) flag='-D' ;;
+      -h|--help)
+        cat <<'EOF'
+usage: gitpruneb [options]
+
+  -y   delete gone branches, but ask for a final yes/no first
+  -f   delete gone branches with no prompt (for scripts/cron)
+  -D   also force-delete branches carrying unpushed commits
+
+With no options this only lists a plan and deletes nothing.
+EOF
+        return 0 ;;
+      *) print -r -- "gitpruneb: unknown option: $1" >&2
+         return 2 ;;
+    esac
+    shift
+  done
+
+  git fetch -p || return 1
+
+  # Collect local branches whose upstream is '[gone]', minus the one checked
+  # out. One name per line, sorted and de-duplicated.
+  local current cue=()
+  current=$(git rev-parse --abbrev-ref HEAD)
+  cue=( ${(f)"$(git for-each-ref \
+    --format='%(refname:short) %(upstream:track)' refs/heads |
+    awk -v c="$current" '$2 == "[gone]" && $1 != c { print $1 }' |
+    sort -u)"} )
+
+  if (( ${#cue} == 0 )); then
+    print -r -- 'gitpruneb: no local branches with a removed upstream.'
+    return 0
+  fi
+
+  print -r -- "Branches to delete (${#cue}):"
+  print -rl -- ${(o)cue} | sed 's/^/  /'
+
+  local reply n=0 b
+  if (( ask == 1 )); then                # -y: confirm first
+    read -q "reply?Delete these ${#cue} branch(es)? [y/N] "
+    print
+    [[ "$reply" == (y|Y) ]] || { print -r -- 'gitpruneb: aborted.'; return 1; }
+  elif (( ask < 0 )); then               # bare invocation: never touch
+    print -r -- 'gitpruneb: dry run (add -y to delete).'
+    return 0
+  fi                                     # ask == 0 (-f): delete silently
+
+  for b in ${cue}; do
+    if git branch "$flag" -- "$b"; then
+      print -r -- "  deleted $b"
+      (( n++ ))
+    else
+      print -r -- "  kept $b (unmerged work; use -D to force)" >&2
+    fi
+  done
+  print -r -- "gitpruneb: deleted $n of ${#cue} branch(es)."
+}
 
 ###########
 ## Other aliases ##
@@ -166,19 +242,30 @@ alias prm='sudo find ${PWD} -maxdepth 20 -type d -name __pycache__ -exec rm -r {
 
 # Prepend tool directories to the PATH.
 #
-# We avoid hardcoding Linux-only absolute paths. Instead we build a PATH from
-# whatever is actually available:
-#   - Homebrew's *dynamic* prefix (macOS, and Linux via brew/linuxbrew)
-#   - ~/.local/bin (pip users, chezmoi installs)
+# Each candidate is added only if its directory exists. We build through
+# zsh's 'path' array (the array view of $PATH) with the unique flag set, so
+# re-sourcing never creates duplicates. Priority order (first wins):
+#   ~/.local/share/pi-node/current/bin   pi + its bundled node/npm/npx
+#   ~/.local/bin                         pip --user, chezmoi, zoxide, uv
+#   /usr/local/bin                       system-local
+# Homebrew's prefix is prepended first when brew exists (macOS / linuxbrew).
+typeset -U path
+typeset -a _tools
+for _dir in \
+  "$HOME/.local/share/pi-node/current/bin" \
+  "$HOME/.local/bin" \
+  "/usr/local/bin"; do
+  [[ -d "$_dir" ]] && _tools+=("$_dir")
+done
 if command -v brew >/dev/null 2>&1; then
-  export PATH="$(brew --prefix)/bin:$(brew --prefix)/opt/nvim/bin:$HOME/.local/bin:${PATH}"
-else
-  export PATH="$HOME/.local/bin:/usr/local/bin:${PATH}"
+  _tools=("$(brew --prefix)/bin" "$(brew --prefix)/opt/nvim/bin" "${_tools[@]}")
 fi
+path=("${_tools[@]}" "${path[@]}")
+unset _dir _tools
 
 # Zoxide (Only load if installed)
 if command -v zoxide &> /dev/null; then
-  eval "$(zoxide init --no-cmd --cmd cd zsh)"
+  eval "$(zoxide init --cmd cd zsh)"
 fi
 
 # NVM
