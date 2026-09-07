@@ -12,6 +12,8 @@ Personal dotfiles managed with [chezmoi](https://www.chezmoi.io/).
 | `run_once_before_packages-10.sh`     | Core CLI packages via the right package manager (apt on Linux, Homebrew on macOS) |
 | `run_once_before_setup-zoxide-20.sh` | Zoxide installer (curl; APT's version is stale on Ubuntu, brew has it too)        |
 | `bootstrap.sh`                       | Hosted one-line installer (see Setup)                                             |
+| `install.sh`                         | **Optional** B1 checkbox menu (see below)                                         |
+| `optional/pi/`                       | Optional `pi` config deployed only when selected                                  |
 
 ## Supported platforms
 
@@ -81,6 +83,33 @@ personal). It is required before your first `git commit`:
 git config --global user.name  "Your Name"
 git config --global user.email "you@example.com"
 ```
+
+### Optional features (per-machine selection)
+
+`bootstrap.sh` finishes by asking which *optional* extras to configure. Core
+items (`.zshrc`, `.gitconfig`, and the three unconditional installers) are
+always applied; optional items are opt-in so a work machine can stay clean.
+
+To run the selection menu yourself (from the source checkout):
+
+```bash
+bash ~/.local/share/chezmoi/install.sh
+```
+
+A checkbox list appears — move with **Up/Down**, toggle with **Space**, run
+checked items with **Enter**, quit with **q**.
+
+**Available optional features:**
+
+- **`pi`** — deploys `optional/pi/agent-settings.json` to
+  `~/.pi/agent/settings.json` (theme, provider, model).
+
+  > API keys are **never** stored here. Authenticate once per machine inside a
+  > pi session with `/login` (or export the provider key), then your config
+  > file is ready. Existing `settings.json` is backed up before overwriting.
+
+Adding future optional things (skills, editors, tools) = one entry in
+`install.sh`'s feature manifest plus an `optional/<name>/` folder.
 
 ---
 

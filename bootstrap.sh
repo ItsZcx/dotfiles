@@ -80,6 +80,19 @@ if [ "${PLATFORM}" = "macos" ]; then
 fi
 
 # ---------------------------------------------------------------------------
+# 3b. Optional-feature menu. Core is applied above; the B1 checkbox menu lets
+#     you pick optional extras (e.g. pi config) on this machine. It lives in
+#     the managed source checkout.
+# ---------------------------------------------------------------------------
+MENU="${HOME}/.local/share/chezmoi/install.sh"
+if [ -f "${MENU}" ]; then
+  say "Now choose optional extras to configure (core setup is already done)."
+  bash "${MENU}" || say "(optional menu was skipped)"
+else
+  say "Optional menu not found at ${MENU} — skipping."
+fi
+
+# ---------------------------------------------------------------------------
 # 4. Closing notes.
 # ---------------------------------------------------------------------------
 say "Done. Open a new shell (or run 'zsh') to load the new config."

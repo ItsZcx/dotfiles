@@ -1,0 +1,17 @@
+# Editor / IDE — never deployed to target machines
+.vscode/
+.idea/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Hosted / interactive tooling — never deployed (the menu copies selected
+# optional items itself; these must NOT be auto-applied by chezmoi)
+bootstrap.sh
+install.sh
+
+# Manager-controlled "optional features" bundle dir. Items here are applied
+# only when explicitly enabled via the install.sh menu, never by `chezmoi
+# apply`.
+optional
