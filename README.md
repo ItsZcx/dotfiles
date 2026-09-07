@@ -13,7 +13,7 @@ Personal dotfiles managed with [chezmoi](https://www.chezmoi.io/).
 | `run_once_before_setup-zoxide-20.sh` | Zoxide installer (curl; APT's version is stale on Ubuntu, brew has it too)        |
 | `bootstrap.sh`                       | Hosted one-line installer (see Setup)                                             |
 | `install.sh`                         | **Optional** B1 checkbox menu (see below)                                         |
-| `optional/pi/`                       | Optional `pi` config deployed only when selected                                  |
+| `optional/pi/`                       | Optional `pi` config + curated skills (deployed when selected)                 |
 
 ## Supported platforms
 
@@ -107,6 +107,27 @@ checked items with **Enter**, quit with **q**.
   > API keys are **never** stored here. Authenticate once per machine inside a
   > pi session with `/login` (or export the provider key), then your config
   > file is ready. Existing `settings.json` is backed up before overwriting.
+
+- **`pi-skills`** — installs the curated skills in `optional/pi/skills/` to
+  `~/.pi/agent/skills/` so they are available as `/skill` commands on every
+  pi session.
+
+  **Installed skills** (adapted from [mattpocock/skills](https://github.com/mattpocock/skills),
+  Codex `agents/` scaffolding removed, each is pi-compatible reasoning/shell):
+
+  | Skill | Purpose |
+  |---|---|
+  | `diagnosing-bugs` | 4-step reproduce→isolate→trace→fix loop for hard bugs |
+  | `tdd` | Test-driven development (red-green-refactor) |
+  | `grilling` | Relentless design/plan interview (replaces Claude-only `grill-me`) |
+  | `research` | Structured research against high-trust primary sources |
+  | `resolving-merge-conflicts` | Methodical git conflict resolution |
+  | `domain-modeling` | Sharpen project domain model & terminology |
+  | `codebase-design` | Deep-module architecture design |
+  | `prototype` | Throwaway spikes to answer design questions |
+
+  Skills are idempotent to deploy and never overwrite an existing local skill
+  of the same name.
 
 Adding future optional things (skills, editors, tools) = one entry in
 `install.sh`'s feature manifest plus an `optional/<name>/` folder.

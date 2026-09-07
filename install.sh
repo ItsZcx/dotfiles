@@ -35,9 +35,11 @@ OPTIONAL_DIR="${SOURCE_DIR}/optional"
 # ---------------------------------------------------------------------------
 declare -A FEATURE_LABEL
 FEATURE_LABEL[pi]="Pi: deploy ~/.pi/agent/settings.json (provider & model)"
+FEATURE_LABEL[pi-skills]="Pi: install curated skills (tdd, diagnosing-bugs, grill-me, research, ...)"
 declare -A FEATURE_RUN
 FEATURE_RUN[pi]="deploy_pi"
-FEATURE_ORDER=(pi)
+FEATURE_RUN[pi-skills]="deploy_pi_skills"
+FEATURE_ORDER=(pi pi-skills)
 
 # ---------------------------------------------------------------------------
 # Feature installer: pi
@@ -63,6 +65,37 @@ deploy_pi() {
       /login
   (or export the relevant key, e.g. DEEPSEEK_API_KEY=..., before launching pi)
 EOF
+}
+
+# ---------------------------------------------------------------------------
+# Feature installer: pi skills
+# ---------------------------------------------------------------------------
+deploy_pi_skills() {
+  local src="${OPTIONAL_DIR}/pi/skills"
+  local dst="${HOME}/.pi/agent/skills"
+  if [ ! -d "${src}" ]; then
+    echo "  !! missing ${src}; skipping" >&2
+    return 1
+  fi
+  mkdir -p "${dst}"
+  # Copy each curated skill; do not overwrite a manually-edited local skill.
+  local n=0
+  for skill_dir in "${src}"/*/; do
+    [ -d "${skill_dir}" ] || continue
+    local name
+    name="$(basename "${skill_dir}")"
+    if [ -e "${dst}/${name}" ]; then
+      echo "  !! ${name} already present; keeping existing" >&2
+    else
+      cp -R "${skill_dir}" "${dst}/"
+      echo "  -> installed skill: ${name}"
+      n=$((n+1))
+    fi
+  done
+  if [ "$n" = "0" ]; then
+    echo "  (no new skills copied — all present or none found)"
+  fi
+  echo "  Skills live in ~/.pi/agent/skills — they load automatically on pi startup."
 }
 
 # ---------------------------------------------------------------------------
