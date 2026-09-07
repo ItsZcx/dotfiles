@@ -112,19 +112,27 @@ checked items with **Enter**, quit with **q**.
   `~/.pi/agent/skills/` so they are available as `/skill` commands on every
   pi session.
 
-  **Installed skills** (adapted from [mattpocock/skills](https://github.com/mattpocock/skills),
-  Codex `agents/` scaffolding removed, each is pi-compatible reasoning/shell):
+  **Installed skills** (adapted from [mattpocock/skills](https://github.com/mattpocock/skills)
+  and [cursor/plugins pstack](https://github.com/cursor/plugins); Codex `agents/`
+  scaffolding and Cursor-specific coupling removed; each is pi-compatible):
 
-  | Skill | Purpose |
-  |---|---|
-  | `diagnosing-bugs` | 4-step reproduce→isolate→trace→fix loop for hard bugs |
-  | `tdd` | Test-driven development (red-green-refactor) |
-  | `grilling` | Relentless design/plan interview (replaces Claude-only `grill-me`) |
-  | `research` | Structured research against high-trust primary sources |
-  | `resolving-merge-conflicts` | Methodical git conflict resolution |
-  | `domain-modeling` | Sharpen project domain model & terminology |
-  | `codebase-design` | Deep-module architecture design |
-  | `prototype` | Throwaway spikes to answer design questions |
+  | Skill | Source | Purpose |
+  |---|---|---|
+  | `diagnosing-bugs` | mattpocock | 4-step reproduce→isolate→trace→fix loop for hard bugs |
+  | `tdd` | mattpocock | Test-driven development (red-green-refactor) |
+  | `grilling` | mattpocock | Relentless design/plan interview (replaces Claude-only `grill-me`) |
+  | `research` | mattpocock | Structured research against high-trust primary sources |
+  | `resolving-merge-conflicts` | mattpocock | Methodical git conflict resolution |
+  | `domain-modeling` | mattpocock | Sharpen project domain model & terminology |
+  | `codebase-design` | mattpocock | Deep-module architecture design |
+  | `prototype` | mattpocock | Throwaway spikes to answer design questions |
+  | `unslop` | pstack | Strip AI tells / add human voice (auto-loaded by technical-writing) |
+  | `technical-writing` | pstack | Layered doc standard (Diátaxis/Google/STE/Global English) |
+  | `bro` | pstack | Restate last message in plain human language |
+
+  > `unslop`, `technical-writing`, and `bro` ship with
+  > `disable-model-invocation: true` (their pstack design): they are hidden
+  > from automatic context and fired deliberately via `/skill:name`.
 
   Skills are idempotent to deploy and never overwrite an existing local skill
   of the same name.
