@@ -36,7 +36,7 @@ OPTIONAL_DIR="${SOURCE_DIR}/optional"
 declare -A FEATURE_LABEL
 FEATURE_LABEL[pi]="Pi: deploy ~/.pi/agent/settings.json (provider & model)"
 FEATURE_LABEL[pi-skills]="Pi: install curated skills (tdd, diagnosing-bugs, grill-me, research, ...)"
-FEATURE_LABEL[pi-guard]="Pi: git guardrail — never commit/push without your approval"
+FEATURE_LABEL[pi-guard]="Pi: git guardrail — Pi may commit, but NEVER push (push stays manual)"
 FEATURE_LABEL[pi-prompts]="Pi: prompt templates (e.g. /commit conventional commits)"
 FEATURE_LABEL[pi-web-access]="Pi: install pi-web-access (web_search tools) + config (paste TinyFish key, never commit)"
 declare -A FEATURE_RUN

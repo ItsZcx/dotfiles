@@ -139,10 +139,10 @@ checked items with **Enter**, quit with **q**.
 - **`pi-guard`** — installs `optional/pi/extensions/git-guard.ts` to
   `~/.pi/agent/extensions/`.
 
-  This is a **global guardrail**: pi will not run `git commit` or `git push`
-  without your explicit in-terminal approval. It is fail-closed (if approval
-  can't be asked, the command is blocked). Restart pi or run `/reload` after
-  installing.
+  This is a **global guardrail**: pi may run `git commit`, but can **never**
+  run `git push`. Pushing is always done by you manually. Commit is allowed
+  without a prompt; push is hard-blocked with no approval escape hatch
+  (fail-closed). Restart pi or run `/reload` after installing.
 
 - **`pi-prompts`** — installs `optional/pi/prompts/*.md` to
   `~/.pi/agent/prompts/`, giving you reusable `/commands`.
