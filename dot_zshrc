@@ -257,6 +257,16 @@ for _dir in \
   "/usr/local/bin"; do
   [[ -d "$_dir" ]] && _tools+=("$_dir")
 done
+
+# ---------------------------------------------------------------------------
+# Pi coding agent — make the config dir explicit for pi-web-access
+# ---------------------------------------------------------------------------
+# pi-web-access (the web_search extension) reads its config from here. Pointing
+# PI_CODING_AGENT_DIR at pi's own agent dir is harmless and keeps web_search
+# config next to the rest of pi's config. The TinyFish search key is stored in
+# ~/.pi/agent/web-search.json (empty until you paste one), NOT here or in the
+# chezmoi repo.
+export PI_CODING_AGENT_DIR="$HOME/.pi/agent"
 if command -v brew >/dev/null 2>&1; then
   _tools=("$(brew --prefix)/bin" "$(brew --prefix)/opt/nvim/bin" "${_tools[@]}")
 fi

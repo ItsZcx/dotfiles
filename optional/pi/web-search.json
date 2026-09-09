@@ -1,0 +1,8 @@
+{
+	"_setup": "To use TinyFish, replace the empty tinyfishApiKey below with your real key, e.g. \"sk-tinyfish-...\". Leave it empty (\"\") to keep using zero-config Exa. Never commit your real key. Routing tries TinyFish first, then falls back to Exa.",
+	"tinyfishApiKey": "<TINYFISH-API-KEY>",
+	"searchRouting": {
+		"providers": ["tinyfish", "exa"],
+		"fallbackOn": ["transient", "quota", "network", "invalid-response"]
+	}
+}

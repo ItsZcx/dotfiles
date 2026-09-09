@@ -38,12 +38,14 @@ FEATURE_LABEL[pi]="Pi: deploy ~/.pi/agent/settings.json (provider & model)"
 FEATURE_LABEL[pi-skills]="Pi: install curated skills (tdd, diagnosing-bugs, grill-me, research, ...)"
 FEATURE_LABEL[pi-guard]="Pi: git guardrail — never commit/push without your approval"
 FEATURE_LABEL[pi-prompts]="Pi: prompt templates (e.g. /commit conventional commits)"
+FEATURE_LABEL[pi-web-access]="Pi: install pi-web-access (web_search tools) + config (paste TinyFish key, never commit)"
 declare -A FEATURE_RUN
 FEATURE_RUN[pi]="deploy_pi"
 FEATURE_RUN[pi-skills]="deploy_pi_skills"
 FEATURE_RUN[pi-guard]="deploy_pi_guard"
 FEATURE_RUN[pi-prompts]="deploy_pi_prompts"
-FEATURE_ORDER=(pi pi-skills pi-guard pi-prompts)
+FEATURE_RUN[pi-web-access]="deploy_pi_web_access"
+FEATURE_ORDER=(pi pi-skills pi-guard pi-prompts pi-web-access)
 
 # ---------------------------------------------------------------------------
 # Feature installer: pi
@@ -126,6 +128,59 @@ deploy_pi_prompts() {
   deploy_pi_tree "${OPTIONAL_DIR}/pi/prompts" "${HOME}/.pi/agent/prompts"
   echo "  Type /commit (and others) in pi to use them."
 }
+
+# ---------------------------------------------------------------------------
+# Feature installer: pi web access (pi-web-access: web_search tools + config)
+# ---------------------------------------------------------------------------
+# Two jobs:
+#   1. Install the pi-web-access CLI package (registers web_search etc.) by
+#      running:  pi install npm:pi-web-access   — skipped if already installed,
+#      and reports gracefully if the pi CLI can't be run now.
+#   2. Seed ~/.pi/agent/web-search.json from the repo template ONLY if it is
+#      not already present (never overwrites a real pasted key). The template
+#      has tinyfishApiKey empty so search falls back to zero-config Exa until
+#      you paste a key in the live file.
+deploy_pi_web_access() {
+  local src="${OPTIONAL_DIR}/pi/web-search.json"
+  local dst="${HOME}/.pi/agent/web-search.json"
+
+  # --- 1. pi CLI package -------------------------------------------------
+  if command -v pi >/dev/null 2>&1; then
+    if pi list 2>/dev/null | grep -q 'pi-web-access'; then
+      echo "  -> pi-web-access package already installed; skipping 'pi install'"
+    else
+      echo "  -> installing pi-web-access package (pi install npm:pi-web-access)..."
+      pi install npm:pi-web-access || echo "  !! pi install failed; re-run later with: pi install npm:pi-web-access" >&2
+    fi
+  else
+    echo "  !! 'pi' not on PATH; skipping package install." >&2
+    echo "     Install it later with: pi install npm:pi-web-access"
+  fi
+
+  # --- 2. web-search.json config -----------------------------------------
+  if [ ! -f "${src}" ]; then
+    echo "  !! missing ${src}; skipping" >&2
+    return 1
+  fi
+  mkdir -p "$(dirname "${dst}")"
+  if [ -f "${dst}" ]; then
+    echo "  -> ${dst} already exists; keeping it (not overwriting a pasted key)"
+  else
+    cp "${src}" "${dst}"
+    echo "  -> wrote ${dst}"
+  fi
+  cat <<'EOF'
+
+  pi-web-access installed: provides the web_search, source_check, fetch_content,
+  and get_search_content tools, plus the /websearch, /curator, /search commands.
+  Config: ~/.pi/agent/web-search.json — tinyfishApiKey empty, so searches use
+  zero-config Exa until you paste a key in that file:
+        "tinyfishApiKey": "<YOUR-TINYFISH-KEY>"
+  Keep the repo copy empty/placeholder - never commit your real key, and this
+  installer will not overwrite a pasted key.
+EOF
+}
+
 
 # ---------------------------------------------------------------------------
 # Interactive checkbox menu (ASCII, portable)
