@@ -1,6 +1,6 @@
 ---
 name: implement
-description: Build the work described by a spec or set of tickets test-first, typechecking as you go, then review the diff before committing.
+description: Build the work described by a spec or set of tickets test-first, typechecking as you go, then review the diff. Never commit; the user commits with /commit.
 disable-model-invocation: true
 ---
 
@@ -34,4 +34,5 @@ once at the end.
 Once done, load and follow `../code-review/SKILL.md` to review the work along
 the Standards axis (and Spec axis against the spec you were given).
 
-Commit your work to the current branch.
+**Do not commit.** Leave the work uncommitted and report what changed. The user
+commits with `/commit` when they decide the work is ready.

@@ -1,51 +1,94 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 /**
- * Git push guardrail — Pi may commit, but must NEVER push.
+ * Git guardrail — Pi may NEVER push, and may only commit when explicitly told.
  *
- * Intercepts every `bash` tool call and hard-blocks any real `git push`
- * invocation with no approval path: pushing is always done by the user, from
- * their own terminal. Non-push git commands (e.g. `git commit`) are allowed
- * silently and are not intercepted.
+ * Two rules, both hard-blocked at the `tool_call` layer:
+ *
+ *  1. `git push` is always blocked. Pushing is done by the user, from their own
+ *     terminal. Fail-closed; no approval path.
+ *
+ *  2. `git commit` is blocked unless the current turn was started by an explicit
+ *     `/commit` (see COMMIT_TRIGGER_RE below). This makes the user the only one
+ *     who decides when commits happen, instead of the model committing on its
+ *     own after making changes.
+ *
+ * The commit allowance is armed by the `input` hook when the user submits the
+ * `/commit` prompt template, and consumed by the next `git commit` tool call.
+ * It is deliberately one-shot per user message: the model cannot keep committing
+ * across turns. `/commit` commits several logical commits in a row, so the flag
+ * grants the whole turn and clears when the next user message arrives.
  *
  * Detection: split the command into shell statements (on `&&`, `||`, `;`, `|`,
  * `(`, newline). For each statement, drop leading env assignments and a leading
  * `sudo`, locate `git`, skip any `-<flag> <value>` option pairs that precede the
- * subcommand, and treat the first remaining bare token as the subcommand. If it
- * is `push` in any statement, the whole command is blocked — so compound lines
- * like `git commit && git push origin main` are caught. Commands that merely
- * echo the words, or are `#`-comments, are not treated as git runs.
+ * subcommand, and treat the first remaining bare token as the subcommand. If any
+ * statement is `push`, the whole command is blocked; `commit` is blocked unless
+ * armed. Commands that merely echo the words, or are `#`-comments, are not
+ * treated as git runs.
  *
  * Global: lives in ~/.pi/agent/extensions/, applies to every project/session.
- * Fail-closed for push; there is deliberately no confirm escape hatch.
  */
+
+/**
+ * Raw user input that arms a one-shot commit allowance for the turn.
+ * Matches `/commit`, `/commit <args>`, and the prompt-template form
+ * `/prompt commit` / `/prompt commit <args>`.
+ */
+const COMMIT_TRIGGER_RE = /^\/(?:prompt\s+)?commit(?:\s|$)/;
+
 export default function (pi: ExtensionAPI) {
+  // Armed when the user explicitly asks for a commit; cleared on the next
+  // non-commit user message so the model can't smuggle commits into later turns.
+  let commitArmed = false;
+
+  pi.on("input", async (event) => {
+    const text = (event.text ?? "").trim();
+    if (COMMIT_TRIGGER_RE.test(text)) {
+      commitArmed = true;
+      return;
+    }
+
+    // Any other user message disarms: a commit from here on is model-initiated.
+    // Note this includes assistant/extension-injected text, which is fine — the
+    // only way to (re)arm is a literal /commit input.
+    commitArmed = false;
+  });
+
   pi.on("tool_call", async (event) => {
     if (event.toolName !== "bash") return;
 
     const raw: string = (event.input?.command ?? "") as string;
     if (!raw.trim()) return;
 
-    if (containsRealPush(raw)) {
+    if (containsSubcommand(raw, "push")) {
       return {
         block: true,
         reason:
           "Blocked by git guardrail: Pi is allowed to commit but may NEVER push. Push manually from your own terminal.",
       };
     }
+
+    if (!commitArmed && containsSubcommand(raw, "commit")) {
+      return {
+        block: true,
+        reason:
+          "Blocked by git guardrail: commits only happen when you run /commit. Stage, review, and run /commit yourself — do not commit on your own.",
+      };
+    }
   });
 }
 
-/** True if any shell statement in `cmd` runs `git ... push`. */
-function containsRealPush(cmd: string): boolean {
+/** True if any shell statement in `cmd` runs `git ... <subcommand>`. */
+function containsSubcommand(cmd: string, subcommand: string): boolean {
   // Split into statement starts on the usual bash command separators.
   // This also naturally drops `#`-comments after a separator (a pure comment
-  // line yields an empty/comment-only statement that won't parse as a push).
+  // line yields an empty/comment-only statement that won't parse as a git run).
   const statements = cmd.split(/\s*(?:&&|\|\||;|\||\(|\n)\s*/);
   return statements.some((stmt) => {
     const trimmed = stmt.replace(/#.*$/, "").trim();
     if (!trimmed) return false;
-    return getGitSubcommand(trimmed) === "push";
+    return getGitSubcommand(trimmed) === subcommand;
   });
 }
 

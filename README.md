@@ -139,17 +139,20 @@ checked items with **Enter**, quit with **q**.
 - **`pi-guard`** — installs `optional/pi/extensions/git-guard.ts` to
   `~/.pi/agent/extensions/`.
 
-  This is a **global guardrail**: pi may run `git commit`, but can **never**
-  run `git push`. Pushing is always done by you manually. Commit is allowed
-  without a prompt; push is hard-blocked with no approval escape hatch
-  (fail-closed). Restart pi or run `/reload` after installing.
+  This is a **global guardrail**: pi can **never** run `git push`, and it can
+  **only commit when you tell it to** via `/commit`. Pushing is always done by
+  you manually. Commits outside a `/commit` turn are hard-blocked, so pi never
+  commits on its own after making changes; push is hard-blocked with no approval
+  escape hatch (fail-closed). Restart pi or run `/reload` after installing.
 
 - **`pi-prompts`** — installs `optional/pi/prompts/*.md` to
   `~/.pi/agent/prompts/`, giving you reusable `/commands`.
 
-  - **`/commit`** — commits staged changes following the Conventional Commits
-    spec (type/scope/subject/body rules), shows you the exact command first,
-    and never pushes (push stays manual).
+  - **`/commit`** — commits uncommitted work in separate logical commits
+    following the Conventional Commits spec (type/scope/subject/body rules),
+    shows you the plan and exact commands first, waits for your confirmation,
+    and never pushes (push stays manual). This is the *only* way pi may commit
+    (see `pi-guard` above).
   - **`/bro`** — restates pi's last message in plain human language, no jargon.
 
 Adding future optional things (skills, editors, tools) = one entry in
