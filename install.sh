@@ -36,7 +36,7 @@ OPTIONAL_DIR="${SOURCE_DIR}/optional"
 declare -A FEATURE_LABEL
 FEATURE_LABEL[pi]="Pi: deploy ~/.pi/agent/settings.json (provider & model)"
 FEATURE_LABEL[pi-skills]="Pi: install curated skills (tdd, diagnosing-bugs, grill-me, research, ...)"
-FEATURE_LABEL[pi-guard]="Pi: git guardrail — commits only via /commit, NEVER push"
+FEATURE_LABEL[pi-guard]="Pi: git guardrail — never push; commit only when told"
 FEATURE_LABEL[pi-prompts]="Pi: prompt templates (e.g. /commit conventional commits)"
 FEATURE_LABEL[pi-web-access]="Pi: install pi-web-access (web_search tools) + config (paste TinyFish key, never commit)"
 declare -A FEATURE_RUN
@@ -118,6 +118,9 @@ deploy_pi_skills() {
 # ---------------------------------------------------------------------------
 deploy_pi_guard() {
   deploy_pi_tree "${OPTIONAL_DIR}/pi/extensions" "${HOME}/.pi/agent/extensions"
+  # Standing instruction: never commit unless the user asks. Overwrites (with a
+  # timestamped backup) so policy updates actually land.
+  deploy_pi_file "${OPTIONAL_DIR}/pi/APPEND_SYSTEM.md" "${HOME}/.pi/agent/APPEND_SYSTEM.md"
   echo "  Restart pi (or run /reload) for the git guardrail to take effect."
   echo "  NOTE: an existing git-guard.ts is kept as-is. To adopt the latest"
   echo "        guardrail, replace it manually:"

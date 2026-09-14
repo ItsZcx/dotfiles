@@ -37,7 +37,7 @@ The route most work travels. You have an idea and want it built.
    - **Yes** → run **`to-spec`** to pin the thread to a written spec, then **`to-tickets`** to break it into tracer-bullet tickets under `.scratch/<feature>/issues/`, each declaring its **blocking edges**, worked blockers-first. Kick off **`implement`** per ticket in a **fresh session** (`/new`), reading that ticket + the spec, so each is self-contained and disposable after.
    - **No** → **`implement`** right here, in the same context window.
 
-   Either way, **`implement`** builds each ticket by driving **`tdd`** (one red-green slice at a time), then closes out by running **`code-review`** (Standards axis + Spec if a spec exists). It never commits; the user does that with `/commit`. Reach for **`tdd`** on its own to just build a behaviour test-first, and **`code-review`** on its own to review a branch/`HEAD~N` diff.
+   Either way, **`implement`** builds each ticket by driving **`tdd`** (one red-green slice at a time), then closes out by running **`code-review`** (Standards axis + Spec if a spec exists). It never commits on its own; the user asks for that explicitly (usually with `/commit`). Reach for **`tdd`** on its own to just build a behaviour test-first, and **`code-review`** on its own to review a branch/`HEAD~N` diff.
 
 ### Context hygiene (pi-native)
 

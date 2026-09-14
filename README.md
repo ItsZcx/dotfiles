@@ -139,11 +139,13 @@ checked items with **Enter**, quit with **q**.
 - **`pi-guard`** — installs `optional/pi/extensions/git-guard.ts` to
   `~/.pi/agent/extensions/`.
 
-  This is a **global guardrail**: pi can **never** run `git push`, and it can
-  **only commit when you tell it to** via `/commit`. Pushing is always done by
-  you manually. Commits outside a `/commit` turn are hard-blocked, so pi never
-  commits on its own after making changes; push is hard-blocked with no approval
-  escape hatch (fail-closed). Restart pi or run `/reload` after installing.
+  This is a **global guardrail**: pi can **never** run `git push`, and it must
+  **not commit unless you tell it to**. Pushing is always done by you manually,
+  and push is hard-blocked with no approval escape hatch (fail-closed). Commits
+  are governed by a standing instruction (`APPEND_SYSTEM.md`): pi leaves finished
+  work uncommitted and waits for you to ask, so it never commits on its own after
+  making changes. Any clear instruction works — `/commit` is the canonical form,
+  but "commit this" counts too. Restart pi or run `/reload` after installing.
 
 - **`pi-prompts`** — installs `optional/pi/prompts/*.md` to
   `~/.pi/agent/prompts/`, giving you reusable `/commands`.
@@ -151,8 +153,8 @@ checked items with **Enter**, quit with **q**.
   - **`/commit`** — commits uncommitted work in separate logical commits
     following the Conventional Commits spec (type/scope/subject/body rules),
     shows you the plan and exact commands first, waits for your confirmation,
-    and never pushes (push stays manual). This is the *only* way pi may commit
-    (see `pi-guard` above).
+    and never pushes (push stays manual). This is the canonical way to ask pi
+    to commit (see `pi-guard` above).
   - **`/bro`** — restates pi's last message in plain human language, no jargon.
 
 Adding future optional things (skills, editors, tools) = one entry in
