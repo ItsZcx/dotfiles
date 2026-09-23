@@ -25,31 +25,40 @@ OPTIONAL_DIR="${SOURCE_DIR}/optional"
 # ---------------------------------------------------------------------------
 # Feature manifest.
 #
-# Each optional feature is defined here with:
-#   name   : short id
-#   label  : human description shown in the menu
-#   runner : function that performs the install when ENABLED.
-#
-# Add optional things (skills, editors, etc.) by appending to FEATURE_ORDER
-# and populating FEATURE_LABEL / FEATURE_RUN for the new id.
-# ---------------------------------------------------------------------------
-declare -A FEATURE_LABEL
-FEATURE_LABEL[pi]="Pi: deploy ~/.pi/agent/settings.json (provider & model)"
-FEATURE_LABEL[pi-skills]="Pi: install curated skills (tdd, diagnosing-bugs, research, ...)"
-FEATURE_LABEL[pi-extensions]="Pi: install extensions (btw side-chat, subagent delegation)"
-FEATURE_LABEL[pi-agents]="Pi: install subagent definitions (scout, planner, reviewer, worker)"
-FEATURE_LABEL[pi-guard]="Pi: git guardrail — never push; commit only when told"
-FEATURE_LABEL[pi-prompts]="Pi: prompt templates (e.g. /commit conventional commits)"
-FEATURE_LABEL[pi-web-access]="Pi: install pi-web-access (web_search tools) + config (paste TinyFish key, never commit)"
-declare -A FEATURE_RUN
-FEATURE_RUN[pi]="deploy_pi"
-FEATURE_RUN[pi-skills]="deploy_pi_skills"
-FEATURE_RUN[pi-extensions]="deploy_pi_extensions"
-FEATURE_RUN[pi-agents]="deploy_pi_agents"
-FEATURE_RUN[pi-guard]="deploy_pi_guard"
-FEATURE_RUN[pi-prompts]="deploy_pi_prompts"
-FEATURE_RUN[pi-web-access]="deploy_pi_web_access"
-FEATURE_ORDER=(pi pi-skills pi-extensions pi-agents pi-guard pi-prompts pi-web-access)
+# Each optional feature is defined here with its ID, human label, and runner
+# function name. Using parallel indexed arrays ensures full compatibility
+# with legacy Bash 3.2 (default on macOS) which lacks associative arrays (-A).
+FEATURE_IDS=(
+  "pi"
+  "pi-skills"
+  "pi-extensions"
+  "pi-agents"
+  "pi-guard"
+  "pi-prompts"
+  "pi-web-access"
+)
+
+FEATURE_LABELS=(
+  "Pi: deploy ~/.pi/agent/settings.json (provider & model)"
+  "Pi: install curated skills (tdd, diagnosing-bugs, research, ...)"
+  "Pi: install extensions (btw side-chat, subagent delegation)"
+  "Pi: install subagent definitions (scout, planner, reviewer, worker)"
+  "Pi: git guardrail — never push; commit only when told"
+  "Pi: prompt templates (e.g. /commit conventional commits)"
+  "Pi: install pi-web-access (web_search tools) + config (paste TinyFish key, never commit)"
+)
+
+FEATURE_RUNNERS=(
+  "deploy_pi"
+  "deploy_pi_skills"
+  "deploy_pi_extensions"
+  "deploy_pi_agents"
+  "deploy_pi_guard"
+  "deploy_pi_prompts"
+  "deploy_pi_web_access"
+)
+
+FEATURE_ORDER=("${FEATURE_IDS[@]}")
 
 # ---------------------------------------------------------------------------
 # Feature installer: pi
@@ -257,9 +266,9 @@ redraw() {
   for ((i=0;i<${#FEATURE_ORDER[@]};i++)); do
     [ "${checked[$i]}" = "1" ] && mark='[x]' || mark='[ ]'
     if [ "$i" -eq "$current" ]; then
-      printf '%s %s %s %s\n' "$HIGHLIGHT_ON" "$i" "$mark" "${FEATURE_LABEL[${FEATURE_ORDER[$i]}]}$HIGHLIGHT_OFF"
+      printf '%s %s %s %s\n' "$HIGHLIGHT_ON" "$i" "$mark" "${FEATURE_LABELS[$i]}$HIGHLIGHT_OFF"
     else
-      printf '  %d %s %s\n' "$i" "$mark" "${FEATURE_LABEL[${FEATURE_ORDER[$i]}]}"
+      printf '  %d %s %s\n' "$i" "$mark" "${FEATURE_LABELS[$i]}"
     fi
   done
   echo
@@ -324,7 +333,7 @@ main() {
       any=1
       local id="${FEATURE_ORDER[$i]}"
       echo ""; echo "==> Enabling optional feature: ${id}"
-      "${FEATURE_RUN[$id]}" || true
+      "${FEATURE_RUNNERS[$i]}" || true
     fi
   done
 
