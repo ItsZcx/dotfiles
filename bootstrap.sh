@@ -33,6 +33,9 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 GITHUB_USER="ItsZcx"
 REPO_NAME="dotfiles"
+# Where chezmoi is installed if it is not already present. Must be an absolute
+# path: the upstream installer's default is the relative "bin" (./bin).
+CHEZMOI_BINDIR="${HOME}/.local/bin"
 # Public repo, cloneable without credentials.
 CLONE_TARGET="${GITHUB_USER}/${REPO_NAME}"
 
@@ -53,17 +56,22 @@ say "Platform detected: ${PLATFORM}"
 # 2. Install chezmoi if missing.
 # ---------------------------------------------------------------------------
 if ! command -v chezmoi >/dev/null 2>&1; then
-  say "chezmoi not found — installing to ~/.local/bin"
-  sh -c "$(curl -fsLS get.chezmoi.io)"
+  say "chezmoi not found — installing to ${CHEZMOI_BINDIR}"
+  mkdir -p "${CHEZMOI_BINDIR}"
+  # -b is required: without it the installer uses BINDIR=bin, i.e. ./bin
+  # relative to the current working directory, which is not on PATH.
+  sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "${CHEZMOI_BINDIR}"
 else
   say "chezmoi already installed: $(chezmoi --version)"
 fi
 
-# chezmoi installs to ~/.local/bin; make sure it's reachable for this run.
-if ! command -v chezmoi >/dev/null 2>&1 && [ -x "$HOME/.local/bin/chezmoi" ]; then
-  export PATH="$HOME/.local/bin:$PATH"
-fi
-command -v chezmoi >/dev/null 2>&1 || die "chezmoi still not on PATH"
+# Make the install dir reachable for the rest of this run (dot_zshrc adds it
+# permanently for interactive shells).
+case ":${PATH}:" in
+  *":${CHEZMOI_BINDIR}:"*) ;;
+  *) export PATH="${CHEZMOI_BINDIR}:${PATH}" ;;
+esac
+command -v chezmoi >/dev/null 2>&1 || die "chezmoi still not on PATH (looked in ${CHEZMOI_BINDIR})"
 
 # ---------------------------------------------------------------------------
 # 3. Clone & apply the dotfiles. This is what runs the run_once_before_* and
