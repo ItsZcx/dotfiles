@@ -76,16 +76,41 @@ elif [ "${pkg_family}" = "macos" ]; then
   ensure_xcode_clt
 
   # Install Homebrew, mounting the standard non-interactive installer.
+  #
+  # Do NOT set NONINTERACTIVE=1 here. It makes Homebrew pass -n to sudo,
+  # i.e. never prompt for a password, which aborts on a fresh Mac where
+  # /opt/homebrew (or /usr/local) is not yet writable and sudo has no cached
+  # credentials:
+  #   abort "Insufficient permissions to install Homebrew to ..."
+  # Leaving it unset lets Homebrew prompt for the password once. It still
+  # falls back to non-interactive automatically when stdin is not a TTY, and
+  # that path uses `sudo -v` (prompting) rather than `sudo -n`.
   if ! command -v brew >/dev/null 2>&1; then
-    echo "==> Installing Homebrew..."
-    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    echo "==> Installing Homebrew (may prompt for your password)..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   else
     echo "==> Homebrew already installed."
   fi
 
-  # Put brew on PATH for the rest of this script (it may be freshly
-  # installed and not yet on this shell's PATH). Resolve dynamically.
-  eval "$(brew shellenv 2>/dev/null || true)"
+  # Put brew on PATH for the rest of this script. It may be freshly installed
+  # (or simply not on this shell's PATH, since dot_zshrc is only sourced by
+  # interactive shells), so resolve the binary at its known install locations
+  # before invoking it -- `brew shellenv` cannot be used to *find* brew.
+  if ! command -v brew >/dev/null 2>&1; then
+    for candidate in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+      if [ -x "${candidate}" ]; then
+        eval "$("${candidate}" shellenv)"
+        break
+      fi
+    done
+  fi
+
+  if ! command -v brew >/dev/null 2>&1; then
+    echo "error: Homebrew is not on PATH after installation." >&2
+    echo "       Open a new terminal, or add it manually, then re-run:" >&2
+    echo "         eval \"\$(/opt/homebrew/bin/brew shellenv)\"" >&2
+    exit 1
+  fi
 
   echo "==> Updating Homebrew and installing core packages..."
   brew update

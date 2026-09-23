@@ -55,22 +55,27 @@ say "Platform detected: ${PLATFORM}"
 # ---------------------------------------------------------------------------
 # 2. Install chezmoi if missing.
 # ---------------------------------------------------------------------------
-if ! command -v chezmoi >/dev/null 2>&1; then
+# Probe the install dir directly rather than relying on PATH: a fresh
+# non-interactive shell does not source dot_zshrc, so ~/.local/bin is usually
+# absent from PATH even when chezmoi is already installed there. Without this
+# the installer re-downloads chezmoi on every single run.
+case ":${PATH}:" in
+  *":${CHEZMOI_BINDIR}:"*) ;;
+  *) export PATH="${CHEZMOI_BINDIR}:${PATH}" ;;
+esac
+
+if [ -x "${CHEZMOI_BINDIR}/chezmoi" ]; then
+  say "chezmoi already installed: $("${CHEZMOI_BINDIR}/chezmoi" --version)"
+elif command -v chezmoi >/dev/null 2>&1; then
+  say "chezmoi already installed: $(chezmoi --version)"
+else
   say "chezmoi not found — installing to ${CHEZMOI_BINDIR}"
   mkdir -p "${CHEZMOI_BINDIR}"
   # -b is required: without it the installer uses BINDIR=bin, i.e. ./bin
   # relative to the current working directory, which is not on PATH.
   sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "${CHEZMOI_BINDIR}"
-else
-  say "chezmoi already installed: $(chezmoi --version)"
 fi
 
-# Make the install dir reachable for the rest of this run (dot_zshrc adds it
-# permanently for interactive shells).
-case ":${PATH}:" in
-  *":${CHEZMOI_BINDIR}:"*) ;;
-  *) export PATH="${CHEZMOI_BINDIR}:${PATH}" ;;
-esac
 command -v chezmoi >/dev/null 2>&1 || die "chezmoi still not on PATH (looked in ${CHEZMOI_BINDIR})"
 
 # ---------------------------------------------------------------------------
