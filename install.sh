@@ -30,6 +30,7 @@ OPTIONAL_DIR="${SOURCE_DIR}/optional"
 # with legacy Bash 3.2 (default on macOS) which lacks associative arrays (-A).
 FEATURE_IDS=(
   "pi"
+  "pi-cli"
   "pi-skills"
   "pi-extensions"
   "pi-agents"
@@ -40,6 +41,7 @@ FEATURE_IDS=(
 
 FEATURE_LABELS=(
   "Pi: deploy ~/.pi/agent/settings.json (provider & model)"
+  "Pi: install the pi CLI itself (required by every other Pi feature)"
   "Pi: install curated skills (tdd, diagnosing-bugs, research, ...)"
   "Pi: install extensions (btw side-chat, subagent delegation)"
   "Pi: install subagent definitions (scout, planner, reviewer, worker)"
@@ -50,6 +52,7 @@ FEATURE_LABELS=(
 
 FEATURE_RUNNERS=(
   "deploy_pi"
+  "deploy_pi_cli"
   "deploy_pi_skills"
   "deploy_pi_extensions"
   "deploy_pi_agents"
@@ -115,6 +118,48 @@ deploy_pi_tree() {
   done
   if [ "$n" = "0" ]; then
     echo "  (nothing new — all already present or none found)"
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# Feature installer: pi CLI
+# ---------------------------------------------------------------------------
+# Everything else under the Pi umbrella only writes *config* into
+# ~/.pi/agent/. Nothing here provides the `pi` binary itself, so on a fresh
+# machine the config lands but `pi` cannot be run. This feature installs it.
+#
+deploy_pi_cli() {
+  # pi may already be present without being on PATH in this shell: its
+  # managed install lives at ~/.local/share/pi-node/current/bin, which
+  # dot_zshrc adds for interactive shells only.
+  local pibin="${HOME}/.local/share/pi-node/current/bin/pi"
+  if command -v pi >/dev/null 2>&1; then
+    echo "  -> pi already installed: $(pi --version 2>/dev/null || echo present)"
+    return 0
+  fi
+  if [ -x "${pibin}" ]; then
+    echo "  -> pi already installed: $("${pibin}" --version 2>/dev/null || echo present)"
+    echo "     (not on PATH in this shell; open a new terminal to use it)"
+    return 0
+  fi
+
+  echo "  -> installing the pi CLI via https://pi.dev/install.sh"
+  echo "     This may prompt you to install Node.js if it is missing."
+  if ! curl -fsSL https://pi.dev/install.sh | sh; then
+    echo "  !! pi install failed. Re-run it later with:" >&2
+    echo "       curl -fsSL https://pi.dev/install.sh | sh" >&2
+    return 1
+  fi
+
+  # The installer creates ~/.local/share/pi-node/current/bin/pi.
+  if [ -x "${pibin}" ]; then
+    echo "  -> installed: ${pibin}"
+    echo "     Open a new terminal (so dot_zshrc adds it to PATH) before running pi."
+  elif command -v pi >/dev/null 2>&1; then
+    echo "  -> installed: $(command -v pi)"
+  else
+    echo "  !! pi is still not on PATH; open a new terminal and check 'pi --version'" >&2
+    return 1
   fi
 }
 
@@ -218,7 +263,9 @@ deploy_pi_web_access() {
     fi
   else
     echo "  !! 'pi' not on PATH; skipping package install." >&2
-    echo "     Install it later with: pi install npm:pi-web-access"
+    echo "     Enable the 'pi-cli' feature, then re-run this one. Or install manually:" >&2
+    echo "       curl -fsSL https://pi.dev/install.sh | sh" >&2
+    echo "       pi install npm:pi-web-access" >&2
   fi
 
   # --- 2. web-search.json config -----------------------------------------
