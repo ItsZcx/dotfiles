@@ -2,9 +2,9 @@
   "lastChangelogVersion": "0.85.1",
   "theme": "dark",
   "defaultProvider": "deepseek",
-  "defaultModel": "deepseek-v4-flash",
+  "defaultModel": "deepseek-flash",
   "enabledModels": [
-    "deepseek/deepseek-v4-flash",
+    "deepseek/deepseek-flash",
     "deepseek/deepseek-v4-pro",
     "google/gemini-3.5-flash-lite"
   ],

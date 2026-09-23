@@ -35,17 +35,21 @@ OPTIONAL_DIR="${SOURCE_DIR}/optional"
 # ---------------------------------------------------------------------------
 declare -A FEATURE_LABEL
 FEATURE_LABEL[pi]="Pi: deploy ~/.pi/agent/settings.json (provider & model)"
-FEATURE_LABEL[pi-skills]="Pi: install curated skills (tdd, diagnosing-bugs, grill-me, research, ...)"
+FEATURE_LABEL[pi-skills]="Pi: install curated skills (tdd, diagnosing-bugs, research, ...)"
+FEATURE_LABEL[pi-extensions]="Pi: install extensions (btw side-chat, subagent delegation)"
+FEATURE_LABEL[pi-agents]="Pi: install subagent definitions (scout, planner, reviewer, worker)"
 FEATURE_LABEL[pi-guard]="Pi: git guardrail — never push; commit only when told"
 FEATURE_LABEL[pi-prompts]="Pi: prompt templates (e.g. /commit conventional commits)"
 FEATURE_LABEL[pi-web-access]="Pi: install pi-web-access (web_search tools) + config (paste TinyFish key, never commit)"
 declare -A FEATURE_RUN
 FEATURE_RUN[pi]="deploy_pi"
 FEATURE_RUN[pi-skills]="deploy_pi_skills"
+FEATURE_RUN[pi-extensions]="deploy_pi_extensions"
+FEATURE_RUN[pi-agents]="deploy_pi_agents"
 FEATURE_RUN[pi-guard]="deploy_pi_guard"
 FEATURE_RUN[pi-prompts]="deploy_pi_prompts"
 FEATURE_RUN[pi-web-access]="deploy_pi_web_access"
-FEATURE_ORDER=(pi pi-skills pi-guard pi-prompts pi-web-access)
+FEATURE_ORDER=(pi pi-skills pi-extensions pi-agents pi-guard pi-prompts pi-web-access)
 
 # ---------------------------------------------------------------------------
 # Feature installer: pi
@@ -111,20 +115,63 @@ deploy_pi_tree() {
 deploy_pi_skills() {
   deploy_pi_tree "${OPTIONAL_DIR}/pi/skills" "${HOME}/.pi/agent/skills"
   echo "  Skills load automatically on pi startup."
+  echo "  NOTE: /implement and friends also need the pi-agents feature for"
+  echo "        their scout/planner/reviewer/worker definitions to resolve."
+}
+
+# ---------------------------------------------------------------------------
+# Feature installer: pi extensions (btw, subagent, ...)
+# ---------------------------------------------------------------------------
+# Non-overwriting tree copy: an existing extension of the same name is kept,
+# so a locally-tweaked btw.ts or subagent/ is never clobbered. git-guard.ts is
+# deliberately NOT deployed here — it belongs to the pi-guard feature, which
+# uses a forced copy so guardrail updates actually land.
+deploy_pi_extensions() {
+  local src="${OPTIONAL_DIR}/pi/extensions" dst="${HOME}/.pi/agent/extensions"
+  if [ ! -d "${src}" ]; then
+    echo "  !! missing ${src}; skipping" >&2
+    return 1
+  fi
+  mkdir -p "${dst}"
+  local n=0 item name
+  for item in "${src}"/*; do
+    [ -e "${item}" ] || continue
+    name="$(basename "${item}")"
+    [ "${name}" = "git-guard.ts" ] && continue   # owned by pi-guard
+    if [ -e "${dst}/${name}" ]; then
+      echo "  !! ${name} already present; keeping existing" >&2
+    else
+      cp -R "${item}" "${dst}/"
+      echo "  -> installed: ${name}"
+      n=$((n+1))
+    fi
+  done
+  [ "$n" = "0" ] && echo "  (nothing new — all already present or none found)"
+  echo "  Restart pi (or run /reload) for extensions to load."
+}
+
+# ---------------------------------------------------------------------------
+# Feature installer: pi subagent definitions
+# ---------------------------------------------------------------------------
+# The subagent extension discovers agents in ~/.pi/agent/agents. The prompts
+# that drive them (/implement, /scout-and-plan, /implement-and-review) expect
+# scout/planner/reviewer/worker to exist, so install them alongside.
+deploy_pi_agents() {
+  deploy_pi_tree "${OPTIONAL_DIR}/pi/agents" "${HOME}/.pi/agent/agents"
 }
 
 # ---------------------------------------------------------------------------
 # Feature installer: pi guardrail extension
 # ---------------------------------------------------------------------------
 deploy_pi_guard() {
-  deploy_pi_tree "${OPTIONAL_DIR}/pi/extensions" "${HOME}/.pi/agent/extensions"
+  # Forced copy (with timestamped backup) so guardrail fixes actually reach a
+  # machine that already has an older git-guard.ts. Everything else in
+  # extensions/ is handled by the pi-extensions feature.
+  deploy_pi_file "${OPTIONAL_DIR}/pi/extensions/git-guard.ts" "${HOME}/.pi/agent/extensions/git-guard.ts"
   # Standing instruction: never commit unless the user asks. Overwrites (with a
   # timestamped backup) so policy updates actually land.
   deploy_pi_file "${OPTIONAL_DIR}/pi/APPEND_SYSTEM.md" "${HOME}/.pi/agent/APPEND_SYSTEM.md"
   echo "  Restart pi (or run /reload) for the git guardrail to take effect."
-  echo "  NOTE: an existing git-guard.ts is kept as-is. To adopt the latest"
-  echo "        guardrail, replace it manually:"
-  echo "          cp \"${OPTIONAL_DIR}/pi/extensions/git-guard.ts\" \"${HOME}/.pi/agent/extensions/\""
 }
 
 # ---------------------------------------------------------------------------
@@ -133,6 +180,8 @@ deploy_pi_guard() {
 deploy_pi_prompts() {
   deploy_pi_tree "${OPTIONAL_DIR}/pi/prompts" "${HOME}/.pi/agent/prompts"
   echo "  Type /commit (and others) in pi to use them."
+  echo "  NOTE: /implement, /scout-and-plan and /implement-and-review drive the"
+  echo "        subagent extension and need the pi-extensions + pi-agents features."
 }
 
 # ---------------------------------------------------------------------------
