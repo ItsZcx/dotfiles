@@ -26,7 +26,17 @@ echo "==> Detected platform family: ${pkg_family}"
 
 # Packages we always want, keyed by the tool's CLI name so we can probe
 # for an existing install regardless of the package manager behind it.
-TOOLS=(curl git zsh neofetch)
+#
+# PACKAGES vs. best-effort tools: anything in TOOLS that a package manager may
+# not carry is installed best-effort so one missing formula cannot abort the
+# whole run (under `set -e` a single `brew install` failure used to kill the
+# script and, with it, the rest of `chezmoi apply`).
+#
+# fastfetch, not neofetch: neofetch was archived upstream and removed from
+# homebrew-core, so `brew install neofetch` now fails outright. fastfetch is
+# the maintained successor and is packaged for both Homebrew and apt.
+TOOLS=(curl git zsh)
+OPTIONAL_TOOLS=(fastfetch)
 
 if [ "${pkg_family}" = "linux" ]; then
   # ---------------------------------------------------------------
@@ -34,14 +44,23 @@ if [ "${pkg_family}" = "linux" ]; then
   # ---------------------------------------------------------------
   sudo apt-get update -y
 
+  # fastfetch is best-effort: it is present in Homebrew and in recent Ubuntu
+  # archives, but not in older ones, so a miss must not abort the run.
   PACKAGES=(
     "${TOOLS[@]}"
+    "${OPTIONAL_TOOLS[@]}"
     build-essential  # compiler toolchain (gcc, g++, make)
     # docker
     # nvim
   )
 
-  sudo apt-get install -y "${PACKAGES[@]}"
+  # Best-effort: apt-get install fails as a unit if any single package is
+  # unavailable, so retry the core set alone rather than aborting the run
+  # (which would also abort the rest of chezmoi apply via set -e).
+  sudo apt-get install -y "${PACKAGES[@]}" || {
+    echo "  !! full package set failed; retrying core packages only" >&2
+    sudo apt-get install -y "${TOOLS[@]}" build-essential
+  }
 
 elif [ "${pkg_family}" = "macos" ]; then
   # ---------------------------------------------------------------
@@ -120,7 +139,16 @@ elif [ "${pkg_family}" = "macos" ]; then
   for tool in "${TOOLS[@]}"; do
     if ! command -v "${tool}" >/dev/null 2>&1; then
       echo "==> Installing ${tool} via Homebrew..."
-      brew install "${tool}"
+      brew install "${tool}" || echo "  !! ${tool} failed to install; continuing" >&2
+    else
+      echo "==> ${tool} already available."
+    fi
+  done
+
+  for tool in "${OPTIONAL_TOOLS[@]}"; do
+    if ! command -v "${tool}" >/dev/null 2>&1; then
+      echo "==> Installing optional ${tool} via Homebrew (may be unavailable)..."
+      brew install "${tool}" || echo "  !! optional ${tool} not available; skipping" >&2
     else
       echo "==> ${tool} already available."
     fi
