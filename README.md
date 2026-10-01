@@ -14,6 +14,7 @@ Personal dotfiles managed with [chezmoi](https://www.chezmoi.io/).
 | `bootstrap.sh`                       | Hosted one-line installer (see Setup)                                             |
 | `install.sh`                         | **Optional** checkbox menu (see below)                                            |
 | `optional/pi/`                       | Optional `pi` config, skills, extensions, agents, guardrail, templates            |
+| `optional/macos/`                    | Optional macOS app configs (`aerospace.toml`, `vorssaint_settings.plist`, `iterm2_config.plist`) |
 
 ## Supported platforms
 
@@ -222,6 +223,41 @@ checked items with **Enter**, quit with **q**.
   > back to zero-config Exa until you paste a real key. The installer **never**
   > overwrites an existing `web-search.json`, so a pasted key is safe. Keep the
   > repo copy empty — never commit your real key.
+
+- **`mac-aerospace`** — macOS-only. Installs the [AeroSpace](https://github.com/nikitabobko/AeroSpace)
+  tiling window manager (cask `nikitabobko/tap/aerospace`) and deploys
+  `optional/macos/aerospace.toml` to `~/.aerospace.toml`.
+
+  Requires macOS ≥ 13. AeroSpace reads `~/.aerospace.toml` on launch and
+  reloads it when the file is saved, so deploying the file applies it.
+
+- **`mac-vorssaint`** — macOS-only. Installs the [Vorssaint](https://github.com/vorssaint/vorssaint-utils)
+  menu-bar toolkit (cask `vorssaint`) and deploys `optional/macos/vorssaint_settings.plist`
+  to `~/.vorssaint_settings.plist`.
+
+  Requires **arm64 + macOS ≥ 14**. The deployed file is Vorssaint's
+  export/backup (it carries `vorssaintBackup*` keys), not the live config that
+  Vorssaint reads on launch. Restore it from Vorssaint's settings UI
+  (Import/Backup).
+
+- **`mac-iterm2`** — macOS-only. Installs [iTerm2](https://iterm2.com/)
+  (cask `iterm2`) and deploys `optional/macos/iterm2_config.plist` to
+  `~/.iterm2_config.plist`.
+
+  The file holds iTerm2's settings only: the profile, colors, and global prefs,
+  extracted from an iTerm2 export with no history, chats, or saved state. iTerm2
+  does not read it on launch, so import it once. Quit iTerm2 first, or the app
+  overwrites the import when it exits:
+
+  ```bash
+  defaults import com.googlecode.iterm2 ~/.iterm2_config.plist
+  ```
+
+  Or use **Settings > General > Preferences > Import**.
+
+For the three `mac-*` features, an existing file that differs is backed up to
+`<file>.orig.<timestamp>` before it is overwritten, so local edits are never
+lost.
 
 Adding future optional things (skills, editors, tools) = one entry in
 `install.sh`'s feature manifest plus an `optional/<name>/` folder.

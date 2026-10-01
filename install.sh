@@ -37,6 +37,9 @@ FEATURE_IDS=(
   "pi-guard"
   "pi-prompts"
   "pi-web-access"
+  "mac-aerospace"
+  "mac-vorssaint"
+  "mac-iterm2"
 )
 
 FEATURE_LABELS=(
@@ -48,6 +51,9 @@ FEATURE_LABELS=(
   "Pi: git guardrail — never push; commit only when told"
   "Pi: prompt templates (e.g. /commit conventional commits)"
   "Pi: install pi-web-access (web_search tools) + config (paste TinyFish key, never commit)"
+  "macOS: install AeroSpace (tiling WM) + deploy ~/.aerospace.toml"
+  "macOS: install Vorssaint (menu-bar toolkit) + deploy ~/.vorssaint_settings.plist"
+  "macOS: install iTerm2 + deploy ~/.iterm2_config.plist (import manually)"
 )
 
 FEATURE_RUNNERS=(
@@ -59,6 +65,9 @@ FEATURE_RUNNERS=(
   "deploy_pi_guard"
   "deploy_pi_prompts"
   "deploy_pi_web_access"
+  "deploy_macos_aerospace"
+  "deploy_macos_vorssaint"
+  "deploy_macos_iterm2"
 )
 
 FEATURE_ORDER=("${FEATURE_IDS[@]}")
@@ -290,6 +299,101 @@ deploy_pi_web_access() {
         "tinyfishApiKey": "<YOUR-TINYFISH-KEY>"
   Keep the repo copy empty/placeholder - never commit your real key, and this
   installer will not overwrite a pasted key.
+EOF
+}
+
+# ---------------------------------------------------------------------------
+# Feature installer: macOS — AeroSpace (tiling window manager)
+# ---------------------------------------------------------------------------
+# macOS-only. Installs the AeroSpace cask if missing, then deploys
+# ~/.aerospace.toml (with a timestamped backup of any differing file).
+deploy_macos_aerospace() {
+  if [ "$(uname -s)" != "Darwin" ]; then
+    echo "  !! macOS-only feature; skipping on $(uname -s)" >&2
+    return 0
+  fi
+
+  if brew list --cask aerospace >/dev/null 2>&1; then
+    echo "  -> AeroSpace already installed; skipping 'brew install'"
+  else
+    echo "  -> installing AeroSpace (brew install --cask nikitabobko/tap/aerospace)..."
+    # Tap-qualified first (unambiguous); fall back to the plain cask name.
+    brew install --cask nikitabobko/tap/aerospace \
+      || brew install --cask aerospace \
+      || echo "  !! AeroSpace install failed; re-run later with: brew install --cask nikitabobko/tap/aerospace" >&2
+  fi
+
+  deploy_file_backup "${OPTIONAL_DIR}/macos/aerospace.toml" "${HOME}/.aerospace.toml"
+  echo "  AeroSpace reads ~/.aerospace.toml on launch; it auto-reloads when the file is saved."
+}
+
+# ---------------------------------------------------------------------------
+# Feature installer: macOS — Vorssaint (menu-bar toolkit)
+# ---------------------------------------------------------------------------
+# macOS-only. Installs the Vorssaint cask if missing, then deploys
+# ~/.vorssaint_settings.plist (with a timestamped backup of any differing file).
+#
+# NOTE: ~/.vorssaint_settings.plist is Vorssaint's *export/backup* file (see its
+# vorssaintBackup* keys), not the live config it reads on launch. Restore it from
+# inside Vorssaint's settings UI when you want to apply it on a new machine.
+deploy_macos_vorssaint() {
+  if [ "$(uname -s)" != "Darwin" ]; then
+    echo "  !! macOS-only feature; skipping on $(uname -s)" >&2
+    return 0
+  fi
+
+  if brew list --cask vorssaint >/dev/null 2>&1; then
+    echo "  -> Vorssaint already installed; skipping 'brew install'"
+  else
+    echo "  -> installing Vorssaint (brew install --cask vorssaint)..."
+    echo "     NOTE: the cask requires arm64 + macOS 14 or newer."
+    brew install --cask vorssaint \
+      || echo "  !! Vorssaint install failed (needs arm64 + macOS >= 14); re-run later with: brew install --cask vorssaint" >&2
+  fi
+
+  deploy_file_backup "${OPTIONAL_DIR}/macos/vorssaint_settings.plist" "${HOME}/.vorssaint_settings.plist"
+  cat <<'EOF'
+
+  Deployed ~/.vorssaint_settings.plist. This is Vorssaint's export/backup file,
+  not read automatically on launch — restore it from Vorssaint's settings UI
+  (Import/Backup) to apply it on this machine.
+EOF
+}
+
+# ---------------------------------------------------------------------------
+# Feature installer: macOS — iTerm2 (terminal emulator)
+# ---------------------------------------------------------------------------
+# macOS-only. Installs the iTerm2 cask if missing, then deploys the iTerm2
+# settings plist to ~/.iterm2_config.plist.
+#
+# The plist is iTerm2's own settings (profile, colors, global prefs) extracted
+# from an iTerm2 export — no history, chats or saved state. iTerm2 does NOT read
+# it from here; import it once with `defaults import` (or the settings UI).
+deploy_macos_iterm2() {
+  if [ "$(uname -s)" != "Darwin" ]; then
+    echo "  !! macOS-only feature; skipping on $(uname -s)" >&2
+    return 0
+  fi
+
+  if brew list --cask iterm2 >/dev/null 2>&1; then
+    echo "  -> iTerm2 already installed; skipping 'brew install'"
+  else
+    echo "  -> installing iTerm2 (brew install --cask iterm2)..."
+    brew install --cask iterm2 \
+      || echo "  !! iTerm2 install failed; re-run later with: brew install --cask iterm2" >&2
+  fi
+
+  deploy_file_backup "${OPTIONAL_DIR}/macos/iterm2_config.plist" "${HOME}/.iterm2_config.plist"
+  cat <<'EOF'
+
+  Deployed ~/.iterm2_config.plist. iTerm2 does NOT read this automatically —
+  import it once (quit iTerm2 first so it does not overwrite the import on exit):
+
+      defaults import com.googlecode.iterm2 ~/.iterm2_config.plist
+
+  Or use the UI: Settings > General > Preferences > Import.
+  The file is settings only (profile/colors/global prefs) — no history or
+  credentials.
 EOF
 }
 
