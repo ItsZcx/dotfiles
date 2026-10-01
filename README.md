@@ -11,6 +11,7 @@ Personal dotfiles managed with [chezmoi](https://www.chezmoi.io/).
 | `run_once_before_setup-zsh-10.sh`    | Install Oh My Zsh (unattended)                                                    |
 | `run_once_before_packages-10.sh`     | Core CLI packages via the right package manager (apt on Linux, Homebrew on macOS) |
 | `run_once_before_setup-zoxide-20.sh` | Zoxide installer (curl; APT's version is stale on Ubuntu, brew has it too)        |
+| `run_once_before_setup-macos-30.sh`  | macOS-only system defaults (dark mode, key repeat, Dock, Finder, clock, ...)      |
 | `bootstrap.sh`                       | Hosted one-line installer (see Setup)                                             |
 | `install.sh`                         | **Optional** checkbox menu (see below)                                            |
 | `optional/pi/`                       | Optional `pi` config, skills, extensions, agents, guardrail, templates            |
@@ -65,8 +66,8 @@ chezmoi init --apply ItsZcx/dotfiles
 ```
 
 This applies the dotfiles and runs the install scripts: Oh My Zsh,
-core packages (via Homebrew/Xcode CLT on macOS, apt on Linux), Zoxide, and
-writes `~/.zshrc` and `~/.gitconfig`.
+core packages (via Homebrew/Xcode CLT on macOS, apt on Linux), Zoxide, and the
+macOS system defaults (macOS only), and writes `~/.zshrc` and `~/.gitconfig`.
 
 **3. Make zsh your default shell (optional)** — macOS already defaults to zsh:
 
@@ -88,7 +89,7 @@ git config --global user.email "you@example.com"
 ### Optional features (per-machine selection)
 
 `bootstrap.sh` finishes by asking which *optional* extras to configure. Core
-items (`.zshrc`, `.gitconfig`, and the three unconditional installers) are
+items (`.zshrc`, `.gitconfig`, and the four unconditional installers) are
 always applied; optional items are opt-in so a work machine can stay clean.
 
 To run the selection menu yourself (from the source checkout):
@@ -297,6 +298,7 @@ chezmoi runs scripts automatically based on their filename prefix:
 - `run_once_before_setup-zsh-10.sh`, installs Oh My Zsh once (unattended).
 - `run_once_before_packages-10.sh`, installs core CLI packages once, using the platform's package manager.
 - `run_once_before_setup-zoxide-20.sh`, installs Zoxide once (via curl at `setup-zoxide-20`, as its `.sh` suffix + curl approach keeps it portable).
+- `run_once_before_setup-macos-30.sh`, applies personal macOS system defaults once (dark mode, fast key repeat, Dock autohide / no Spaces reordering, Finder and menu-bar clock options). It is a no-op on non-macOS.
 
 > **Why curl for Zoxide?** The Ubuntu APT repo ships a very outdated Zoxide.
 > The maintainers recommend installing via the official curl script, so Zoxide
