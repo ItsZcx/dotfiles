@@ -67,7 +67,8 @@ FEATURE_ORDER=("${FEATURE_IDS[@]}")
 # Feature installer: pi
 # ---------------------------------------------------------------------------
 # Back up any existing file that differs, then copy src over dst.
-deploy_pi_file() {
+# Generic helper, used by both the Pi and macOS feature installers.
+deploy_file_backup() {
   local src="$1" dst="$2"
   if [ ! -f "${src}" ]; then
     echo "  !! missing ${src}; skipping" >&2
@@ -83,8 +84,8 @@ deploy_pi_file() {
 }
 
 deploy_pi() {
-  deploy_pi_file "${OPTIONAL_DIR}/pi/agent-settings.json" "${HOME}/.pi/agent/settings.json"
-  deploy_pi_file "${OPTIONAL_DIR}/pi/keybindings.json" "${HOME}/.pi/agent/keybindings.json"
+  deploy_file_backup "${OPTIONAL_DIR}/pi/agent-settings.json" "${HOME}/.pi/agent/settings.json"
+  deploy_file_backup "${OPTIONAL_DIR}/pi/keybindings.json" "${HOME}/.pi/agent/keybindings.json"
 
   cat <<'EOF'
 
@@ -221,10 +222,10 @@ deploy_pi_guard() {
   # Forced copy (with timestamped backup) so guardrail fixes actually reach a
   # machine that already has an older git-guard.ts. Everything else in
   # extensions/ is handled by the pi-extensions feature.
-  deploy_pi_file "${OPTIONAL_DIR}/pi/extensions/git-guard.ts" "${HOME}/.pi/agent/extensions/git-guard.ts"
+  deploy_file_backup "${OPTIONAL_DIR}/pi/extensions/git-guard.ts" "${HOME}/.pi/agent/extensions/git-guard.ts"
   # Standing instruction: never commit unless the user asks. Overwrites (with a
   # timestamped backup) so policy updates actually land.
-  deploy_pi_file "${OPTIONAL_DIR}/pi/APPEND_SYSTEM.md" "${HOME}/.pi/agent/APPEND_SYSTEM.md"
+  deploy_file_backup "${OPTIONAL_DIR}/pi/APPEND_SYSTEM.md" "${HOME}/.pi/agent/APPEND_SYSTEM.md"
   echo "  Restart pi (or run /reload) for the git guardrail to take effect."
 }
 
