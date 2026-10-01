@@ -494,7 +494,7 @@
 		<key>menuBarCPU</key>
 		<true/>
 		<key>menuBarCPUTemperature</key>
-		<true/>
+		<false/>
 		<key>menuBarCombineTemperatures</key>
 		<true/>
 		<key>menuBarConnectedDevices</key>
@@ -510,9 +510,9 @@
 		<key>menuBarGPU</key>
 		<true/>
 		<key>menuBarGPUTemperature</key>
-		<true/>
-		<key>menuBarHideIconWithMetrics</key>
 		<false/>
+		<key>menuBarHideIconWithMetrics</key>
+		<true/>
 		<key>menuBarLabelStyle</key>
 		<string>compact</string>
 		<key>menuBarMemory</key>
@@ -536,7 +536,7 @@
 		<key>menuBarPreset</key>
 		<string>dense</string>
 		<key>menuBarSeparateMetrics</key>
-		<false/>
+		<true/>
 		<key>menuBarUsageBarCriticalColor</key>
 		<string>#FF453A</string>
 		<key>menuBarUsageBarElevatedColor</key>
@@ -905,7 +905,7 @@
 		<key>panelControlWindowMaximize</key>
 		<true/>
 		<key>panelControlWindowsExpanded</key>
-		<true/>
+		<false/>
 		<key>panelNavigationEnabled</key>
 		<true/>
 		<key>panelSectionOrder</key>
@@ -1188,7 +1188,7 @@
 		<key>screenshotWatermarkPresets</key>
 		<string>[]</string>
 		<key>screenshotWatermarkStyle</key>
-		<string>{"color":"white","anchor":"bottomTrailing","opacity":0.4,"text":"","size":0.3,"rotation":0,"kind":"none"}</string>
+		<string>{"rotation":0,"opacity":0.4,"color":"white","size":0.3,"text":"","anchor":"bottomTrailing","kind":"none"}</string>
 		<key>scrollHorizontalEnabled</key>
 		<false/>
 		<key>scrollHorizontalModifier</key>
@@ -1297,6 +1297,8 @@
 		<string>command:50</string>
 		<key>switcherWindowlessApps</key>
 		<string>off</string>
+		<key>systemShortcutTakeOverKeys</key>
+		<array/>
 		<key>temperatureUnit</key>
 		<string>celsius</string>
 		<key>textSnippetsEnabled</key>

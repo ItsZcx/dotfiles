@@ -131,8 +131,8 @@ gaps.outer.right =      0
     alt-shift-l = 'move right'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#resize
-    cmd-alt-rightSquareBracket = 'resize smart -50'
-    cmd-alt-slash = 'resize smart +50'
+    cmd-alt-rightSquareBracket = 'resize smart +50'
+    cmd-alt-slash = 'resize smart -50'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
     cmd-alt-1 = 'workspace 1'
