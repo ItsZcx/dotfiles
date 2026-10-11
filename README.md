@@ -120,26 +120,33 @@ checked items with **Enter**, quit with **q**.
   `~/.pi/agent/skills/` so they are available as `/skill` commands on every
   pi session.
 
-  **Installed skills** (adapted from [mattpocock/skills](https://github.com/mattpocock/skills)
-  and [cursor/plugins pstack](https://github.com/cursor/plugins); Codex `agents/`
-  scaffolding and Cursor-specific coupling removed; each is pi-compatible):
+  **Installed skills** (adapted from [mattpocock/skills](https://github.com/mattpocock/skills),
+  [cursor/plugins pstack](https://github.com/cursor/plugins) and
+  [MengTo/Skills](https://github.com/MengTo/Skills); Codex `agents/`
+  scaffolding, Cursor-specific coupling, and bundled `demo/` payloads removed;
+  each is pi-compatible):
 
   | Skill | Purpose |
   |---|---|
   | `ask-matt` | Router: asks which skill/flow fits your situation (manual only) |
+  | `build-awwwards-quality-sites` | **Front door** for premium motion-led sites; art direction, hero, asset honesty, validation. Pulls in the four companions below |
   | `codebase-design` | Deep-module architecture vocabulary |
   | `code-review` | Review changes since a fixed point against standards + spec |
   | `diagnosing-bugs` | 4-step reproduce→isolate→trace→fix loop for hard bugs |
   | `domain-modeling` | Sharpen project domain model, CONTEXT.md, ADRs |
   | `grilling` | Relentless design/plan interview |
   | `grill-with-docs` | Grilling that also writes ADRs and a glossary (manual only) |
+  | `gsap` | GSAP timelines, ScrollTrigger, stagger, transforms (companion, manual only) |
   | `implement` | Build a spec/ticket set test-first, then review the diff (manual only) |
   | `improve-codebase-architecture` | Scan for deepening opportunities, report, then grill (manual only) |
+  | `landing-page` | Landing-page structure, copy, objection handling, SEO/AEO (companion, manual only) |
   | `prototype` | Throwaway spikes to answer design questions |
   | `research` | Structured research against high-trust primary sources |
   | `resolving-merge-conflicts` | Methodical git conflict resolution |
+  | `tailwindcss` | Tailwind layout, typography, theming, pitfalls (companion, manual only) |
   | `tdd` | Test-driven development (red-green-refactor) |
   | `technical-writing` | Layered doc standard (Diátaxis/Google/STE/Global English; manual only) |
+  | `threejs` | Three.js scenes, materials, GLTF, performance (companion, manual only) |
   | `to-spec` | Turn the conversation into a written spec (manual only) |
   | `to-tickets` | Break a plan into tracer-bullet tickets (manual only) |
   | `unslop` | Strip AI tells / add human voice (**auto-applies to all prose**) |
@@ -148,6 +155,14 @@ checked items with **Enter**, quit with **q**.
   > `unslop` is **model-invocable** (auto-applies when pi writes any prose).
   > Skills marked *manual only* carry `disable-model-invocation: true`: they
   > stay out of automatic context and are fired deliberately via `/skill:<name>`.
+
+  > **Web-design family:** `build-awwwards-quality-sites` is the front door and
+  > the only model-invocable member. It reads `gsap`, `threejs`, `tailwindcss`,
+  > and `landing-page` by relative path from its own directory (`../gsap/SKILL.md`,
+  > etc.), so those four stay subordinate and out of automatic selection. They
+  > remain usable standalone via `/skill:gsap`, `/skill:threejs`,
+  > `/skill:tailwindcss`, and `/skill:landing-page`. The family's upstream `demo/`
+  > folders (third-party site clones with broken runtime paths) were removed.
 
   Skills are idempotent to deploy and never overwrite an existing local skill
   of the same name. Some carry supporting files (e.g. `DEEPENING.md`,
