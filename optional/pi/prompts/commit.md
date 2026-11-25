@@ -10,6 +10,21 @@ modified/untracked) by splitting it into separate **logical commits**. If you
 pass paths or a subject (e.g. `feat(pi): fix x` or a file list), commit only
 what was asked for instead and treat that as the scope.
 
+## Write under the technical-writing skill
+
+Every commit subject, body, and the plan below is prose. Before you draft
+any of it, read `~/.pi/agent/skills/technical-writing/SKILL.md` and follow
+that standard for the rest of this workflow.
+
+Where the two sets of rules conflict, split by concern:
+
+- **Format** — Conventional Commits wins: `type(scope): description`,
+  imperative, lowercase, no period, subject under 72 characters, with the
+  developer description as the body.
+- **Prose** — technical writing wins inside that format: cut words that do
+  no work, use the short everyday word, active voice with the actor named,
+  concrete over abstract, no filler or hedging.
+
 ## Default scope (no arguments)
 
 1. Take stock of the whole working tree, not just staged files:
@@ -46,7 +61,8 @@ what was asked for instead and treat that as the scope.
    - `Commit <N> —` keeps the subject exactly as it will be used.
    - **Developer description** explains the *substance* of the change (key
      logic, new/changed functions, parameters, interfaces, structure) at a
-     high level, not a line-by-line listing.
+     high level, not a line-by-line listing. **This text becomes the commit
+     body verbatim** (see step 7), so write it as the body you want committed.
    - **Files:** list an actual path (or group of related paths) per bullet,
      each followed by a short description of what changed there. Group files
      that changed together under one entry only when the change is the same
@@ -62,8 +78,13 @@ what was asked for instead and treat that as the scope.
 
 6. Subject: imperative mood, lowercase, under 72 characters, no period.
 
-7. Add a body only when it explains *why*; wrap at 72 chars; omit when it adds
-   nothing. Mark breaking changes with `!` after type/scope
+7. **Use the plan's Developer description as the commit body.** Commit with:
+   ```bash
+   git commit -m "<subject>" -m "<developer description>"
+   ```
+   The body is the exact text you showed me in the plan, wrapped at 72
+   characters. Omit the body only when the description is genuinely empty.
+   Mark breaking changes with `!` after type/scope
    (`feat(rules)!: require X`).
 
 8. **Never write placeholder brackets literally** (`[scope]`, `[body]`, ...).

@@ -139,12 +139,14 @@ gaps.outer.right =      0
     cmd-alt-2 = 'workspace 2'
     cmd-alt-3 = 'workspace 3'
     cmd-alt-4 = 'workspace 4'
+    cmd-alt-5 = 'workspace 5'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#move-node-to-workspace
     cmd-alt-shift-1 = 'move-node-to-workspace 1'
     cmd-alt-shift-2 = 'move-node-to-workspace 2'
     cmd-alt-shift-3 = 'move-node-to-workspace 3'
     cmd-alt-shift-4 = 'move-node-to-workspace 4'
+    cmd-alt-shift-5 = 'move-node-to-workspace 5'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace-back-and-forth
     alt-tab = 'workspace-back-and-forth'
